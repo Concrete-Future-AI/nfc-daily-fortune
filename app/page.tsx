@@ -1,103 +1,133 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import UserRegistration from '@/components/UserRegistration'
+import FortuneDisplay from '@/components/FortuneDisplay'
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [currentView, setCurrentView] = useState<'loading' | 'registration' | 'fortune' | 'invalid'>('loading')
+  const [nfcUid, setNfcUid] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [fontSize, setFontSize] = useState<number>(16)
+  const searchParams = useSearchParams()
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      // 从URL参数获取NFC UID
+      const urlNfcUid = searchParams.get('nfc_uid')
+      
+      // 简单的 NFC UID 合法性校验：仅允许字母、数字、下划线、连字符，长度4-50
+      const isValidNfcUid = (uid: string) => /^[A-Za-z0-9_-]{4,50}$/.test(uid)
+
+      if (!urlNfcUid) {
+        // 无参数：不允许进入注册页，提示需使用NFC卡片
+        setError('请使用NFC卡片访问，缺少nfc_uid参数')
+        setCurrentView('invalid')
+        setIsLoading(false)
+        return
+      }
+
+      if (!isValidNfcUid(urlNfcUid)) {
+        // 非法参数：不允许进入注册页，给予干净提示页
+        setError('NFC UID不合法，请使用正确的卡片或清空参数后重试')
+        setCurrentView('invalid')
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        // 检查用户是否已注册
+        const response = await fetch(`/api/users/check/${urlNfcUid}`)
+        const data = await response.json()
+
+        if (response.ok) {
+          if (data.exists) {
+            // 用户已注册，直接显示运势页面
+            setNfcUid(urlNfcUid)
+            setCurrentView('fortune')
+          } else if (data.isPreGenerated) {
+            // 预生成用户：允许注册
+            setNfcUid(urlNfcUid)
+            setCurrentView('registration')
+          } else {
+            // 不存在：禁止注册
+            setError('NFC UID未录入系统，无法注册')
+            setCurrentView('invalid')
+          }
+        } else {
+          setError(data.error || '检查用户状态失败')
+          setCurrentView('invalid')
+        }
+      } catch (err) {
+        console.error('检查用户状态失败:', err)
+        setError('网络错误，请重试')
+        setCurrentView('invalid')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkUserStatus()
+  }, [searchParams])
+
+  // 字号调整：上下限 14px ~ 22px
+  useEffect(() => {
+    document.documentElement.style.setProperty('--base-font-size', `${fontSize}px`)
+  }, [fontSize])
+
+  const increaseFont = () => setFontSize((s) => Math.min(22, s + 1))
+  const decreaseFont = () => setFontSize((s) => Math.max(14, s - 1))
+
+  const handleRegistrationComplete = (uid: string) => {
+    setNfcUid(uid)
+    setCurrentView('fortune')
+    setError('')
+  }
+
+  const handleBackToRegistration = () => {
+    setCurrentView('registration')
+    setNfcUid('')
+    setError('')
+  }
+
+  return (
+    <>
+      {/* 固定悬浮的字号调整工具栏 */}
+      <div className="font-controls">
+        <span style={{ color: 'hsl(var(--muted-foreground))' }}>字号</span>
+        <button className="btn" onClick={decreaseFont} style={{ marginLeft: '6px' }}>A-</button>
+        <button className="btn" onClick={increaseFont} style={{ marginLeft: '6px' }}>A+</button>
+        <span style={{ color: 'hsl(var(--muted-foreground))', marginLeft: '8px' }}>{fontSize}px</span>
+      </div>
+
+      <div className="main-container">
+      {/* 移除顶部“健康运势助手”介绍卡片 */}
+
+      <main className="main-content" style={{ width: '100%', float: 'none' }}>
+        {isLoading ? (
+          <div className="overlay" role="status" aria-live="polite">
+            <div style={{ display: 'inline-block', width: '28px', height: '28px', border: '3px solid hsl(var(--border))', borderTop: '3px solid hsl(var(--primary))', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            <p>正在检查用户状态，请稍候…</p>
+          </div>
+        ) : currentView === 'invalid' ? (
+          <div className="overlay" role="status" aria-live="polite">
+            <p style={{ marginTop: '12px' }}>{error || 'NFC UID不合法，无法进入注册页'}</p>
+          </div>
+        ) : currentView === 'registration' ? (
+          <UserRegistration 
+            onRegistrationComplete={handleRegistrationComplete} 
+            initialNfcUid={nfcUid}
+          />
+        ) : (
+          <FortuneDisplay nfcUid={nfcUid} />
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+      {/* 移除注册页底部 NFC 身份识别提示 */}
+
+      </div>
+    </>
+  )
 }

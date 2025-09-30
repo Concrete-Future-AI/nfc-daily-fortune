@@ -1,26 +1,804 @@
+/* 霞鹜文楷字体CDN导入 */
+@import url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style.css');
+
+/* Tailwind CSS v4 导入 */
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* 参考古诗文网的配色方案 - shadcn/ui CSS变量 */
+@theme {
+  --font-wenkai: 'LXGW WenKai', 'KaiTi', '楷体', serif;
+  --font-wenkai-mono: 'LXGW WenKai Mono', 'KaiTi', '楷体', monospace;
+  --radius: 0.3125rem; /* 5px - 参考网站的圆角 */
+  
+  /* 古诗文网风格浅色主题 */
+  --background: 45 15% 88%;           /* #E1E0C7 - 主背景色 */
+  --foreground: 0 0% 6%;              /* #0F0F0F - 主文字色 */
+  --card: 45 20% 94%;                 /* #F0EFE2 - 卡片背景 */
+  --card-foreground: 0 0% 6%;         /* #0F0F0F - 卡片文字 */
+  --popover: 45 20% 94%;              /* #F0EFE2 - 弹窗背景 */
+  --popover-foreground: 0 0% 6%;      /* #0F0F0F - 弹窗文字 */
+  --primary: 205 60% 30%;             /* #19537D - 链接色 */
+  --primary-foreground: 45 20% 94%;   /* #F0EFE2 - 主色文字 */
+  --secondary: 45 15% 88%;            /* #E1E0C7 - 次要背景 */
+  --secondary-foreground: 0 0% 6%;    /* #0F0F0F - 次要文字 */
+  --muted: 45 20% 94%;                /* #F0EFE2 - 静音背景 */
+  --muted-foreground: 0 0% 40%;       /* #999999 - 静音文字 */
+  --accent: 75 50% 50%;               /* #A2C241 - 强调色(绿色装饰) */
+  --accent-foreground: 0 0% 6%;       /* #0F0F0F - 强调文字 */
+  --destructive: 0 70% 55%;           /* 错误色 */
+  --destructive-foreground: 45 20% 94%; /* 错误文字 */
+  --border: 45 10% 74%;               /* #d7d5bc - 边框色 */
+  --input: 45 20% 94%;                /* #F0EFE2 - 输入框背景 */
+  --ring: 205 60% 30%;                /* #19537D - 焦点环 */
+  
+  /* 图表色彩 */
+  --chart-1: 205 60% 30%;             /* #19537D - 蓝色 */
+  --chart-2: 75 50% 50%;              /* #A2C241 - 绿色 */
+  --chart-3: 30 50% 50%;              /* 橙色 */
+  --chart-4: 270 50% 50%;             /* 紫色 */
+  --chart-5: 0 50% 50%;               /* 红色 */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  /* 古诗文网风格深色主题 */
+  --background: 0 0% 8%;              /* 深色背景 */
+  --foreground: 45 20% 94%;           /* 浅色文字 */
+  --card: 0 0% 12%;                   /* 深色卡片 */
+  --card-foreground: 45 20% 94%;      /* 浅色卡片文字 */
+  --popover: 0 0% 12%;                /* 深色弹窗 */
+  --popover-foreground: 45 20% 94%;   /* 浅色弹窗文字 */
+  --primary: 205 60% 50%;             /* 亮蓝色链接 */
+  --primary-foreground: 0 0% 8%;      /* 深色主色文字 */
+  --secondary: 0 0% 15%;              /* 深灰背景 */
+  --secondary-foreground: 45 20% 85%; /* 浅灰文字 */
+  --muted: 0 0% 15%;                  /* 深灰静音 */
+  --muted-foreground: 0 0% 60%;       /* 中灰文字 */
+  --accent: 75 50% 60%;               /* 亮绿色强调 */
+  --accent-foreground: 0 0% 8%;       /* 深色强调文字 */
+  --destructive: 0 60% 50%;           /* 深色错误 */
+  --destructive-foreground: 45 20% 94%; /* 浅色错误文字 */
+  --border: 0 0% 20%;                 /* 深灰边框 */
+  --input: 0 0% 15%;                  /* 深灰输入框 */
+  --ring: 205 60% 50%;                /* 亮蓝色焦点环 */
+  
+  /* 深色图表色彩 */
+  --chart-1: 205 60% 50%;             /* 亮蓝色 */
+  --chart-2: 75 50% 60%;              /* 亮绿色 */
+  --chart-3: 30 50% 60%;              /* 亮橙色 */
+  --chart-4: 270 50% 60%;             /* 亮紫色 */
+  --chart-5: 0 50% 60%;               /* 亮红色 */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 基础样式 - 参考古诗文网 */
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  background-color: hsl(var(--background));
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-wenkai), system-ui, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  font-size: var(--base-font-size);
+  min-height: 100%;
+  position: relative; /* 为伪元素提供定位上下文 */
+}
+
+/* 行业通用稳健方案：用固定覆盖层替代 background-attachment: fixed，避免缩放/超宽时出现空白 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0; /* 覆盖整个视口 */
+  z-index: 0; /* 置于内容之下但在body背景之上，避免被遮挡 */
+  pointer-events: none; /* 不影响交互 */
+  background-image: url('https://ziyuan.guwendao.net/siteimg/bcpic.png');
+  background-repeat: repeat;
+  background-size: auto; /* 保持纹理原尺寸平铺 */
+  background-position: top left; /* 锚定左上以保持纹理自然 */
+  will-change: transform; /* 提升稳定性，减少缩放伪影 */
+}
+
+/* 全局字号变量（可通过页面控件调整） */
+:root {
+  --base-font-size: 16px;
+}
+
+/* 主容器 - 参考古诗文网的1200px固定宽度布局 */
+.main-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  background: transparent; /* 让纸纹理可见 */
+  border-radius: var(--radius);
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+/* 卡片样式 - 参考古诗文网的内容区域 */
+.card {
+  background: hsl(var(--card) / 0.92); /* 轻透明，显露纸纹理 */
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 标题样式 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-wenkai);
+  font-weight: bold;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+
+h1 {
+  font-size: 20px;
+  line-height: 50px;
+  padding: 0 20px;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  position: relative;
+}
+
+h1::before {
+  content: '';
+  width: 3px;
+  height: 21px;
+  background-color: hsl(var(--accent));
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 段落样式 */
+p {
+  line-height: 200%;
+  margin-bottom: 10px;
+  color: hsl(var(--foreground));
+}
+
+/* 链接样式 - 参考古诗文网的蓝色链接 */
+a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 按钮样式 */
+.btn {
+  height: 20px;
+  line-height: 20px;
+  padding: 0 10px;
+  border: 1px solid #C5C5C5;
+  color: #999999;
+  text-align: center;
+  font-size: 12px;
+  border-radius: 2px;
+  background: transparent;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.btn:hover {
+  background-color: hsl(var(--muted));
+}
+
+/* 输入框和搜索框样式 */
+input, textarea {
+  background-color: hsl(var(--input));
+  border: 2px solid hsl(var(--border));
+  border-radius: 15px;
+  padding: 8px 15px;
+  font-family: var(--font-wenkai);
+  color: hsl(var(--foreground));
+}
+
+.search-box {
+  height: 35px;
+  width: 696px;
+  border: 2px solid #5D6146;
+  background-color: #FBFAF6;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+/* 修复加载圈动画缺失 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 导航样式 */
+.nav {
+  opacity: 0.7;
+}
+
+/* 内容区域样式 - 参考古诗文网的左右布局 */
+.main-content {
+  width: 100%;
+  float: none;
+  clear: both;
+}
+
+.sidebar {
+  width: 100%;
+  float: none;
+  clear: both;
+}
+
+/* 内容卡片样式 */
+.content-card {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.content-card .content {
+  padding: 15px 20px;
+  font-size: 14px;
+  line-height: 200%;
+}
+
+/* 章节标题样式 */
+.section-title {
+  height: 50px;
+  line-height: 50px;
+  padding: 0 20px;
+  margin-top: 20px;
+  font-size: 20px;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font-weight: bold;
+  position: relative;
+}
+
+.section-title::before {
+  content: '';
+  width: 3px;
+  height: 21px;
+  background-color: hsl(var(--accent));
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.section-title span {
+  float: right;
+  font-size: 12px;
+  font-weight: normal;
+  color: hsl(var(--muted-foreground));
+}
+
+/* 工具栏样式 */
+.toolbar {
+  height: 32px;
+  margin: 20px;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.toolbar .time {
+  color: hsl(var(--muted-foreground));
+}
+
+/* 标签样式 */
+.tags {
+  padding: 10px 20px;
+  border-top: 1px solid hsl(var(--border));
+  margin-top: 10px;
+}
+
+.tags a, .tags span {
+  color: hsl(var(--muted-foreground));
+  line-height: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+/* 分页样式 */
+.pagination {
+  text-align: center;
+  padding: 20px;
+}
+
+.pagination a {
+  display: inline-block;
+  padding: 5px 10px;
+  margin: 0 2px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--primary));
+}
+
+.pagination a:hover {
+  background-color: hsl(var(--muted));
+}
+
+/* 页脚样式 */
+.footer {
+  clear: both;
+  text-align: center;
+  padding: 20px;
+  color: hsl(var(--muted-foreground));
+  border-top: 1px solid hsl(var(--border));
+  margin-top: 20px; /* 缩小底部间距 */
+}
+
+/* 全屏加载遮罩，确保加载态纯粹不堆叠 */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  background: hsl(var(--background) / 0.85);
+}
+
+.overlay p {
+  color: hsl(var(--muted-foreground));
+}
+
+/* 幸运颜色左右布局，紧凑利用空间 */
+.lucky-row {
+  display: flex;
+  align-items: stretch; /* 左右等高 */
+  justify-content: center;
+  gap: 16px;
+}
+
+.lucky-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lucky-info .ribbon {
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.color-swatch.compact {
+  width: 72px;
+  height: auto; /* 高度随右侧内容等高 */
+  align-self: stretch;
+  min-height: 64px; /* 保底高度 */
+  border-radius: 12px;
+}
+
+/* 移除示意点 */
+.mini-swatches { display: none; }
+.mini-swatch { display: none; }
+
+.lucky-name {
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .lucky-row { gap: 12px; }
+  .color-swatch.compact { width: 64px; min-height: 56px; }
+}
+
+@media (max-width: 480px) {
+  .lucky-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .color-swatch.compact {
+    align-self: center;
+    width: 72px;
+    height: 72px; /* 窄屏改为固定高度 */
+  }
+}
+
+/* 响应式设计 - 适配不同设备 */
+@media (max-width: 1240px) {
+  .main-container {
+    max-width: 100%;
+    margin: 0 10px;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .main-container {
+    width: 100%;
+    padding: 0 20px;
+  }
+  
+  .main-content {
+    width: 100%;
+    float: none;
+  }
+  
+  .sidebar {
+    width: 100%;
+    float: none;
+    margin-top: 20px;
+  }
+  
+  .search-box {
+    width: 100%;
+    max-width: 696px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    margin: 0 5px;
+    padding: 10px;
+  }
+  
+  .main-content {
+    width: 100% !important;
+    float: none !important;
+    margin-bottom: 20px;
+  }
+  
+  .sidebar {
+    width: 100% !important;
+    float: none !important;
+  }
+  
+  .section-title h1 {
+    font-size: 24px;
+  }
+  
+  .section-title h3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-container {
+    margin: 0;
+    padding: 8px;
+    border-radius: 0;
+  }
+  
+  .card {
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .section-title h1 {
+    font-size: 20px;
+  }
+  
+  .section-title h3 {
+    font-size: 16px;
+  }
+}
+
+/* 运势相关样式 - 适配古诗文网风格 */
+.fortune-container {
+  width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.fortune-header {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.fortune-section {
+  background-color: hsl(var(--card) / 0.92);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.fortune-section .section-title {
+  height: 50px;
+  line-height: 50px;
+  padding: 0 20px;
+  font-size: 20px;
+  background-color: hsl(var(--card));
+  border-bottom: 1px solid hsl(var(--border));
+  font-weight: bold;
+  position: relative;
+  margin: 0;
+}
+
+.fortune-section .section-title::before {
+  content: '';
+  width: 3px;
+  height: 21px;
+  background-color: hsl(var(--accent));
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.fortune-text {
+  padding: 15px 20px;
+  font-size: 14px;
+  line-height: 200%;
+  color: hsl(var(--foreground));
+}
+
+.lucky-color-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 20px;
+  background-color: hsl(var(--muted));
+  border-top: 1px solid hsl(var(--border));
+}
+
+.lucky-color-text {
+  color: hsl(var(--foreground));
+  font-weight: normal;
+}
+
+.rating-text {
+  margin-left: 10px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+/* 星级评分样式 - 简化版 */
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star {
+  width: 16px;
+  height: 16px;
+  color: hsl(var(--primary));
+}
+
+.star.empty {
+  color: hsl(var(--muted-foreground));
+}
+
+/* 颜色圆点样式 - 简化版 */
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid hsl(var(--border));
+  display: inline-block;
+}
+
+/* 加载和错误状态 - 古诗文网风格 */
+.loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: hsl(var(--muted-foreground));
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.error {
+  text-align: center;
+  padding: 20px;
+  color: hsl(var(--destructive));
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--destructive));
+  border-radius: var(--radius);
+  margin: 20px 0;
+}
+
+/* 动画效果 */
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 滚动条样式 - 简化版 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
+/* 清除浮动 */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* 工具类 */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.clear-both {
+  clear: both;
+}
+
+/* 代码样式 */
+pre, code, .mono {
+  font-family: var(--font-wenkai-mono), monospace;
+  background-color: hsl(var(--muted));
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 0.9em;
+}
+
+pre {
+  padding: 10px;
+  overflow-x: auto;
+  border: 1px solid hsl(var(--border));
+}
+
+/* 古朴风格的运势块与元素 */
+.block {
+  background: hsl(var(--card) / 0.92);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1; /* 确保卡片在背景覆盖层之上显示 */
+}
+
+.block-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.block-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  position: relative;
+  margin: 0;
+}
+
+.block-title::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 2px;
+  background: hsl(var(--accent));
+  opacity: 0.6;
+  margin: 8px auto 0;
+}
+
+.block-body {
+  color: hsl(var(--foreground));
+  line-height: 1.8;
+  text-align: center;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+.color-swatch {
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+  border: 1.5px solid hsl(var(--border));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.ribbon {
+  display: inline-block;
+  padding: 6px 12px;
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.hint {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+/* 注册页清爽样式：标题与容器透明，移除色条 */
+.registration-clean .section-title {
+  background-color: transparent;
+  border: none;
+  text-align: center;
+}
+
+.registration-clean .section-title::before {
+  display: none;
+}
+
+/* 注册页底部 NFC UID 灰色小字，仅展示纯UID */
+.registration-clean .nfcuid-footer {
+  margin-top: 24px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+}
+.font-controls {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: hsl(var(--secondary) / 0.8);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
