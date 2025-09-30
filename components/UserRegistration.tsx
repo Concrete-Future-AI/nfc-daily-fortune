@@ -91,6 +91,26 @@ export default function UserRegistration({ onRegistrationComplete, initialNfcUid
   return (
     <div className="main-content">
       <div className="registration-clean" style={{ maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
+          {/* 公司Logo */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            marginBottom: '20px', 
+            paddingTop: '20px' 
+          }}>
+            <img 
+              src="/logo.png" 
+              alt="公司Logo" 
+              style={{ 
+                height: '120px', 
+                width: 'auto',
+                objectFit: 'contain',
+                maxWidth: '100%'
+              }} 
+            />
+          </div>
+
           <div className="section-title">
             <h2>用户注册</h2>
           </div>
@@ -235,14 +255,15 @@ export default function UserRegistration({ onRegistrationComplete, initialNfcUid
             <button
               type="submit"
               disabled={isLoading}
-              className="btn"
+              className="flex h-9 w-full rounded-md border border-input shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
               style={{ 
-                width: '100%',
-                height: '40px',
-                lineHeight: '40px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: '#5D6146',
+                color: '#ffffff',
                 fontSize: '16px',
-                opacity: isLoading ? 0.6 : 1,
-                cursor: isLoading ? 'not-allowed' : 'pointer'
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                borderColor: '#5D6146'
               }}
             >
               {isLoading ? "提交中..." : "提交注册"}

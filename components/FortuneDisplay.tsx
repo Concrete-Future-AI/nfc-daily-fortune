@@ -159,6 +159,27 @@ export default function FortuneDisplay({ nfcUid }: FortuneDisplayProps) {
   return (
     <div className="main-container">
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        {/* 公司Logo */}
+        <div style={{ 
+          textAlign: 'center', 
+          marginBottom: '30px', 
+          paddingTop: '30px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <img 
+            src="/logo.png" 
+            alt="公司Logo" 
+            style={{ 
+              height: '120px', 
+              width: 'auto',
+              objectFit: 'contain',
+              maxWidth: '100%'
+            }} 
+          />
+        </div>
+        
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <div className="section-title">
             <h1 style={{ color: '#000000' }}>今日运势</h1>

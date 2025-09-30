@@ -75,12 +75,12 @@
 }
 
 html {
-  background-color: hsl(var(--background));
+  background: transparent; /* 移除背景色，让纹理可见 */
   min-height: 100%;
 }
 
 body {
-  background-color: hsl(var(--background));
+  background: transparent; /* 移除背景色，让纹理可见 */
   color: hsl(var(--foreground));
   font-family: var(--font-wenkai), system-ui, sans-serif;
   line-height: 1.6;
@@ -96,7 +96,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0; /* 覆盖整个视口 */
-  z-index: -1; /* 置于所有内容之下，避免遮挡表单 */
+  z-index: 0; /* 恢复原来的层级，在内容之下但不会被完全遮挡 */
   pointer-events: none; /* 不影响交互 */
   background-image: url('https://ziyuan.guwendao.net/siteimg/bcpic.png');
   background-repeat: repeat;
@@ -121,7 +121,7 @@ body::before {
   box-shadow: none;
   box-sizing: border-box;
   position: relative;
-  z-index: 1; /* 确保主容器在背景覆盖层之上 */
+  z-index: 2; /* 提高层级，确保在纹理背景之上 */
   min-height: 100vh;
 }
 
@@ -435,7 +435,7 @@ input, textarea {
     margin: 0 10px;
     padding: 15px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
 }
 
@@ -444,7 +444,7 @@ input, textarea {
     width: 100%;
     padding: 0 20px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
   
   .main-content {
@@ -469,7 +469,7 @@ input, textarea {
     margin: 0 5px;
     padding: 10px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
   
   .main-content {
@@ -498,7 +498,7 @@ input, textarea {
     padding: 8px;
     border-radius: 0;
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
   
   .card {
@@ -800,6 +800,19 @@ pre {
 }
 
 .registration-clean .section-title::before {
+  display: none;
+}
+
+.registration-clean .section-title::after {
+  display: none;
+}
+
+/* 运势页面清洁样式 - 移除色条 */
+.main-container .section-title::before {
+  display: none;
+}
+
+.main-container .section-title::after {
   display: none;
 }
 
