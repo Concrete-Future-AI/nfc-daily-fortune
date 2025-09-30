@@ -4,7 +4,7 @@ import { generateAIPrompt, callAIService } from '@/lib/ai'
 
 export async function GET(
   request: Request,
-  { params }: { params: { nfc_uid: string } }
+  { params }: { params: Promise<{ nfc_uid: string }> }
 ) {
   try {
     const { nfc_uid } = await params;

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import UserRegistration from '@/components/UserRegistration'
 import FortuneDisplay from '@/components/FortuneDisplay'
 
-export default function Home() {
+function HomeContent() {
   const [currentView, setCurrentView] = useState<'loading' | 'registration' | 'fortune' | 'invalid'>('loading')
   const [nfcUid, setNfcUid] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -129,5 +129,13 @@ export default function Home() {
 
       </div>
     </>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>加载中...</div>}>
+      <HomeContent />
+    </Suspense>
   )
 }

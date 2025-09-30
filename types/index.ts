@@ -20,7 +20,7 @@ export interface Fortune {
   interpersonalFortune: string
   luckyColor: string
   actionSuggestion: string
-  rawAiResponse?: any
+  rawAiResponse?: Record<string, unknown>
   createdAt: Date
 }
 

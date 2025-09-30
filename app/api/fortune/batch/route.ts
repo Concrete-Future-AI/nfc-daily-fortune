@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
         if (!existingFortune) {
           // 生成运势
-          await generateFortuneForUser(user.id, today)
+          await generateFortuneForUser(user, today)
           successCount++
         }
       } catch (error) {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateFortuneForUser(user: any, date: Date) {
+async function generateFortuneForUser(user: { id: number; name: string; gender?: string | null; dateOfBirth: Date; birthPlace?: string | null }, date: Date) {
   // 生成运势
           const prompt = generateAIPrompt({
             name: user.name,

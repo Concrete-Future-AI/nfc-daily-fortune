@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma'
 
 export async function GET(
   request: Request,
-  { params }: { params: { nfc_uid: string } }
+  { params }: { params: Promise<{ nfc_uid: string }> }
 ) {
   try {
     const { nfc_uid } = await params;

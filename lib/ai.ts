@@ -53,16 +53,16 @@ interface AISuccessResponse {
     interpersonalFortune: string
     luckyColor: string
     actionSuggestion: string
-    [key: string]: any
+    [key: string]: string | number
   }
-  rawResponse: any
+  rawResponse: unknown
 }
 
 interface AIErrorResponse {
   success: false
   error: string
-  rawContent: any
-  rawResponse: any
+  rawContent: unknown
+  rawResponse: unknown
 }
 
 export type AIResponse = AISuccessResponse | AIErrorResponse
