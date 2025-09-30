@@ -281,6 +281,17 @@ input, textarea {
   transform: translateY(-50%);
 }
 
+.section-title::after {
+  content: '';
+  width: 3px;
+  height: 21px;
+  background-color: hsl(var(--accent));
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .section-title span {
   float: right;
   font-size: 12px;

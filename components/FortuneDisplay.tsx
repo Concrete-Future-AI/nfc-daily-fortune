@@ -187,11 +187,31 @@ export default function FortuneDisplay({ nfcUid }: FortuneDisplayProps) {
               <div className="block-header">
                 <h3 className="block-title" style={{ color: '#000000' }}>幸运颜色</h3>
               </div>
-              <div className="block-body" style={{ textAlign: 'center' }}>
-                <span className="lucky-name" style={{ fontWeight: 700, color: extractHexColor(fortune.luckyColor) ?? undefined }}>
-                  {extractColorName(fortune.luckyColor)}
-                </span>
-                <p className="hint">佩戴、使用此色，可增助今日好运</p>
+              <div className="block-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+                <div 
+                  className="lucky-color-swatch" 
+                  style={{ 
+                    backgroundColor: extractHexColor(fortune.luckyColor) ?? '#cccccc',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    border: '3px solid #ffffff',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.1)',
+                    flexShrink: 0
+                  }}
+                ></div>
+                <div className="lucky-color-info" style={{ textAlign: 'left' }}>
+                  <div className="lucky-name" style={{ 
+                    fontWeight: 700, 
+                    color: '#333333',
+                    fontSize: '18px',
+                    textShadow: '0 1px 2px rgba(255,255,255,0.8)',
+                    marginBottom: '4px'
+                  }}>
+                    {extractColorName(fortune.luckyColor)}
+                  </div>
+                  <p className="hint" style={{ margin: 0, fontSize: '14px' }}>佩戴、使用此色，可增助今日好运</p>
+                </div>
               </div>
             </div>
 
