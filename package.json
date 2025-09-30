@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
+    "db:export": "tsx scripts/export-database.ts",
+    "db:export-pg": "tsx scripts/export-database-pg.ts",
     "generate-uids": "tsx scripts/generate-nfc-uids.ts"
   },
   "prisma": {
@@ -20,11 +22,14 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.15.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.3",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
     "node-cron": "^4.2.1",
+    "pg": "^8.16.3",
     "prisma": "^6.16.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
