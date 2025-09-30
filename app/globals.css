@@ -96,7 +96,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0; /* 覆盖整个视口 */
-  z-index: 0; /* 置于内容之下但在body背景之上，避免被遮挡 */
+  z-index: -1; /* 置于所有内容之下，避免遮挡表单 */
   pointer-events: none; /* 不影响交互 */
   background-image: url('https://ziyuan.guwendao.net/siteimg/bcpic.png');
   background-repeat: repeat;
@@ -120,6 +120,9 @@ body::before {
   border-radius: var(--radius);
   box-shadow: none;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1; /* 确保主容器在背景覆盖层之上 */
+  min-height: 100vh;
 }
 
 /* 卡片样式 - 参考古诗文网的内容区域 */
@@ -431,6 +434,8 @@ input, textarea {
     max-width: 100%;
     margin: 0 10px;
     padding: 15px;
+    position: relative;
+    z-index: 1;
   }
 }
 
@@ -438,6 +443,8 @@ input, textarea {
   .main-container {
     width: 100%;
     padding: 0 20px;
+    position: relative;
+    z-index: 1;
   }
   
   .main-content {
@@ -461,6 +468,8 @@ input, textarea {
   .main-container {
     margin: 0 5px;
     padding: 10px;
+    position: relative;
+    z-index: 1;
   }
   
   .main-content {
@@ -488,6 +497,8 @@ input, textarea {
     margin: 0;
     padding: 8px;
     border-radius: 0;
+    position: relative;
+    z-index: 1;
   }
   
   .card {
