@@ -121,7 +121,10 @@ function HomeContent() {
             initialNfcUid={nfcUid}
           />
         ) : (
-          <FortuneDisplay nfcUid={nfcUid} />
+          <FortuneDisplay 
+            nfcUid={nfcUid} 
+            onBack={() => setCurrentView('registration')}
+          />
         )}
       </main>
 

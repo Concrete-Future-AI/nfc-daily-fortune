@@ -90,8 +90,24 @@ export async function GET(
 
         const aiData = aiResponse.data;
 
-        fortune = await prisma.fortune.create({
-          data: {
+        // 使用 upsert 来避免唯一性约束冲突
+        fortune = await prisma.fortune.upsert({
+          where: {
+            userId_fortuneDate: {
+              userId: user.id,
+              fortuneDate: today,
+            },
+          },
+          update: {
+            overallRating: aiData.overallRating,
+            luckyColor: aiData.luckyColor,
+            healthFortune: aiData.healthFortune,
+            healthSuggestion: aiData.healthSuggestion,
+            wealthFortune: aiData.wealthFortune,
+            interpersonalFortune: aiData.interpersonalFortune,
+            actionSuggestion: aiData.actionSuggestion,
+          },
+          create: {
             userId: user.id,
             fortuneDate: today,
             overallRating: aiData.overallRating,
@@ -123,6 +139,20 @@ export async function GET(
 
 async function generateFortune(userId: number, date: Date) {
   try {
+    // 首先检查是否已经存在该日期的运势
+    const existingFortune = await prisma.fortune.findUnique({
+      where: {
+        userId_fortuneDate: {
+          userId,
+          fortuneDate: date,
+        },
+      },
+    });
+
+    if (existingFortune) {
+      return existingFortune;
+    }
+
     // 获取用户信息
     const user = await prisma.user.findUnique({
       where: { id: userId }
@@ -162,9 +192,17 @@ async function generateFortune(userId: number, date: Date) {
       rawAiResponse: aiData
     }
 
-    return await prisma.fortune.create({
-      data: newFortune
-    })
+    // 使用 upsert 来避免唯一性约束冲突
+    return await prisma.fortune.upsert({
+      where: {
+        userId_fortuneDate: {
+          userId,
+          fortuneDate: date,
+        },
+      },
+      update: newFortune,
+      create: newFortune,
+    });
 
   } catch (error) {
     console.error('生成运势失败:', error)

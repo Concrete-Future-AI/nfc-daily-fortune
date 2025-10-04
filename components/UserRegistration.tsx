@@ -1,11 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface UserRegistrationProps {
   onRegistrationComplete: (nfcUid: string) => void
@@ -89,191 +84,311 @@ export default function UserRegistration({ onRegistrationComplete, initialNfcUid
   }
 
   return (
-    <div className="main-content">
-      <div className="registration-clean" style={{ maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
-          {/* 公司Logo */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            marginBottom: '20px', 
-            paddingTop: '20px' 
+    <div style={{
+      width: '100%',
+      height: '100vh',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '20px',
+      boxSizing: 'border-box',
+      position: 'relative',
+      overflow: 'hidden',
+      backgroundColor: 'transparent',
+      fontFamily: 'var(--font-wenkai), system-ui, sans-serif'
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '380px',
+        padding: '40px 30px',
+        boxSizing: 'border-box',
+        background: 'rgba(255, 255, 255, 0.3)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '20px',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: '32px'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: 'url(/logo.png) center/contain no-repeat',
+            marginRight: '16px',
+            flexShrink: 0
           }}>
-            <img 
-              src="/logo.png" 
-              alt="公司Logo" 
-              style={{ 
-                height: '120px', 
-                width: 'auto',
-                objectFit: 'contain',
-                maxWidth: '100%'
-              }} 
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <h1 style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              color: '#5D4037',
+              margin: '0 0 8px 0',
+              fontFamily: 'var(--font-wenkai), system-ui, sans-serif',
+              whiteSpace: 'nowrap',
+              backgroundColor: 'transparent',
+              border: 'none',
+              padding: '0',
+              lineHeight: 'normal'
+            }}>开启你的星运之旅</h1>
+            <p style={{
+              fontSize: '15px',
+              color: '#795548',
+              margin: '0',
+              whiteSpace: 'nowrap'
+            }}>输入信息，解锁今日份的专属指引</p>
+          </div>
+        </div>
+        
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+            <label htmlFor="name" style={{
+              display: 'block',
+              fontSize: '14px',
+              color: '#6D4C41',
+              marginBottom: '8px',
+              fontWeight: '500'
+            }}>
+              姓名
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '12px',
+                border: 'none',
+                backgroundColor: '#FFFFFF',
+                fontSize: '16px',
+                boxSizing: 'border-box',
+                color: '#333'
+              }}
+              placeholder="请输入你的昵称或姓名"
+              required
             />
           </div>
 
-          <div className="section-title">
-            <h2>用户注册</h2>
+          <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+            <label htmlFor="gender" style={{
+              display: 'block',
+              fontSize: '14px',
+              color: '#6D4C41',
+              marginBottom: '8px',
+              fontWeight: '500'
+            }}>
+              性别
+            </label>
+            <select
+              id="gender"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '12px',
+                border: 'none',
+                backgroundColor: '#FFFFFF',
+                fontSize: '16px',
+                boxSizing: 'border-box',
+                color: '#333'
+              }}
+              required
+            >
+              <option value="">请选择性别</option>
+              <option value="male">男</option>
+              <option value="female">女</option>
+            </select>
           </div>
-          {/* <p style={{ color: 'hsl(var(--muted-foreground))', marginBottom: '20px' }}>
-            请注册您的信息以获取个性化健康运势
-          </p> */}
-          
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* 移除 NFC UID 输入框，底部仅显示纯UID */}
 
-            <div>
-              <label htmlFor="name" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                姓名
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="search-box"
-                style={{ width: '100%' }}
-                placeholder="请输入您的姓名"
-                required
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                出生日期
-              </label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {/* 年 */}
-                <select
-                  id="birthYear"
-                  value={birthYear ?? ''}
-                  onChange={(e) => {
-                    const val = e.target.value ? parseInt(e.target.value, 10) : null
-                    setBirthYear(val)
-                    if (val && birthMonth && birthDay) {
-                      const maxDays = new Date(val, birthMonth, 0).getDate()
-                      if (birthDay > maxDays) setBirthDay(null)
-                    }
-                  }}
-                  className="search-box"
-                  style={{ width: '100%' }}
-                  required
-                >
-                  <option value="">年</option>
-                  {Array.from({ length: 120 }, (_, i) => new Date().getFullYear() - i).map((y) => (
-                    <option key={y} value={y}>{y}年</option>
-                  ))}
-                </select>
-
-                {/* 月 */}
-                <select
-                  id="birthMonth"
-                  value={birthMonth ?? ''}
-                  onChange={(e) => {
-                    const val = e.target.value ? parseInt(e.target.value, 10) : null
-                    setBirthMonth(val)
-                    if (birthYear && val && birthDay) {
-                      const maxDays = new Date(birthYear, val, 0).getDate()
-                      if (birthDay > maxDays) setBirthDay(null)
-                    }
-                  }}
-                  className="search-box"
-                  style={{ width: '100%' }}
-                  required
-                >
-                  <option value="">月</option>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={m}>{m}月</option>
-                  ))}
-                </select>
-
-                {/* 日 */}
-                <select
-                  id="birthDay"
-                  value={birthDay ?? ''}
-                  onChange={(e) => {
-                    const val = e.target.value ? parseInt(e.target.value, 10) : null
-                    setBirthDay(val)
-                  }}
-                  className="search-box"
-                  style={{ width: '100%' }}
-                  required
-                >
-                  <option value="">日</option>
-                  {Array.from({ length: (birthYear && birthMonth) ? new Date(birthYear, birthMonth, 0).getDate() : 31 }, (_, i) => i + 1).map((d) => (
-                    <option key={d} value={d}>{d}日</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="gender" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                性别
-              </label>
+          <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              color: '#6D4C41',
+              marginBottom: '8px',
+              fontWeight: '500'
+            }}>
+              出生日期 (身份证阳历)
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <select
-                id="gender"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="search-box"
-                style={{ width: '100%' }}
+                id="birthYear"
+                value={birthYear ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value ? parseInt(e.target.value, 10) : null
+                  setBirthYear(val)
+                  if (val && birthMonth && birthDay) {
+                    const maxDays = new Date(val, birthMonth, 0).getDate()
+                    if (birthDay > maxDays) setBirthDay(null)
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: '#FFFFFF',
+                  fontSize: '16px',
+                  boxSizing: 'border-box',
+                  color: '#333'
+                }}
                 required
               >
-                <option value="">请选择性别</option>
-                <option value="male">男</option>
-                <option value="female">女</option>
+                <option value="">年</option>
+                {Array.from({ length: 120 }, (_, i) => new Date().getFullYear() - i).map((y) => (
+                  <option key={y} value={y}>{y}年</option>
+                ))}
+              </select>
+
+              <select
+                id="birthMonth"
+                value={birthMonth ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value ? parseInt(e.target.value, 10) : null
+                  setBirthMonth(val)
+                  if (birthYear && val && birthDay) {
+                    const maxDays = new Date(birthYear, val, 0).getDate()
+                    if (birthDay > maxDays) setBirthDay(null)
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: '#FFFFFF',
+                  fontSize: '16px',
+                  boxSizing: 'border-box',
+                  color: '#333'
+                }}
+                required
+              >
+                <option value="">月</option>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={m}>{m}月</option>
+                ))}
+              </select>
+
+              <select
+                id="birthDay"
+                value={birthDay ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value ? parseInt(e.target.value, 10) : null
+                  setBirthDay(val)
+                }}
+                style={{
+                  flex: 1,
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: '#FFFFFF',
+                  fontSize: '16px',
+                  boxSizing: 'border-box',
+                  color: '#333'
+                }}
+                required
+              >
+                <option value="">日</option>
+                {Array.from({ length: (birthYear && birthMonth) ? new Date(birthYear, birthMonth, 0).getDate() : 31 }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{d}日</option>
+                ))}
               </select>
             </div>
+          </div>
 
-            <div>
-              <label htmlFor="birthPlace" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                出生地
-              </label>
-              <input
-                type="text"
-                id="birthPlace"
-                value={birthPlace}
-                onChange={(e) => setBirthPlace(e.target.value)}
-                className="search-box"
-                style={{ width: '100%' }}
-                placeholder="请输入出生地（可选）"
-              />
-            </div>
-
-            {error && (
-              <div style={{ 
-                color: 'hsl(var(--destructive))', 
-                fontSize: '14px', 
-                backgroundColor: 'hsl(var(--destructive) / 0.1)', 
-                padding: '12px', 
-                borderRadius: 'var(--radius)', 
-                border: '1px solid hsl(var(--destructive) / 0.2)' 
-              }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex h-9 w-full rounded-md border border-input shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-              style={{ 
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#5D6146',
-                color: '#ffffff',
+          <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+            <label htmlFor="birthPlace" style={{
+              display: 'block',
+              fontSize: '14px',
+              color: '#6D4C41',
+              marginBottom: '8px',
+              fontWeight: '500'
+            }}>
+              出生地点
+            </label>
+            <input
+              type="text"
+              id="birthPlace"
+              value={birthPlace}
+              onChange={(e) => setBirthPlace(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '12px',
+                border: 'none',
+                backgroundColor: '#FFFFFF',
                 fontSize: '16px',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                borderColor: '#5D6146'
+                boxSizing: 'border-box',
+                color: '#333'
               }}
-            >
-              {isLoading ? "提交中..." : "提交注册"}
-            </button>
-          </form>
+              placeholder="例如：广东 珠海"
+            />
+          </div>
 
-          {/* 底部仅展示纯UID为灰色小字 */}
-          {(initialNfcUid || nfcUid) && (
-            <p className="nfcuid-footer">{initialNfcUid || nfcUid}</p>
+          {error && (
+            <div style={{
+              color: '#d32f2f',
+              fontSize: '14px',
+              backgroundColor: 'rgba(211, 47, 47, 0.1)',
+              padding: '12px',
+              borderRadius: '12px',
+              border: '1px solid rgba(211, 47, 47, 0.2)',
+              marginBottom: '20px'
+            }}>
+              {error}
+            </div>
           )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            style={{
+              width: '100%',
+              padding: '16px',
+              border: 'none',
+              backgroundColor: '#6D4C41',
+              color: 'white',
+              borderRadius: '12px',
+              fontSize: '18px',
+              fontWeight: '700',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              transition: 'background-color 0.3s ease',
+              marginTop: '10px',
+              opacity: isLoading ? 0.7 : 1
+            }}
+            onMouseOver={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#5D4037'
+              }
+            }}
+            onMouseOut={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#6D4C41'
+              }
+            }}
+          >
+            {isLoading ? "提交中..." : "立即查看"}
+          </button>
+        </form>
+
+        {/* 底部仅展示纯UID为灰色小字 */}
+        {(initialNfcUid || nfcUid) && (
+          <p style={{
+            textAlign: 'center',
+            color: '#999',
+            fontSize: '12px',
+            marginTop: '20px',
+            opacity: 0.7
+          }}>
+            {initialNfcUid || nfcUid}
+          </p>
+        )}
       </div>
     </div>
   )
