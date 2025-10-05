@@ -12,6 +12,7 @@ interface FortuneData {
   healthFortune: string
   wealthFortune: string
   interpersonalFortune: string
+  actionSuggestion: string
   createdAt: string
   updatedAt: string
 }
@@ -230,12 +231,15 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
       boxSizing: 'border-box'
     }}>
       <div style={{
-        maxWidth: '400px',
+        maxWidth: '100%',
+        width: '100%',
         margin: '0 auto',
-        background: 'rgba(255, 255, 255, 0.3)',
-        backdropFilter: 'blur(10px)',
+        padding: '20px',
+        backgroundColor: 'transparent',
         borderRadius: '20px',
-        padding: '30px',
+        backdropFilter: 'none',
+        border: 'none',
+        boxShadow: 'none',
         boxSizing: 'border-box'
       }}>
         {/* 头部 Logo 和标题 */}
@@ -253,14 +257,14 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
           }}></div>
           <div>
             <h1 style={{
-              fontSize: '24px',
+              fontSize: 'calc(var(--base-font-size) * 1.5)',
               fontWeight: '700',
               color: '#5D4037',
               margin: '0 0 4px 0',
               fontFamily: 'var(--font-wenkai), system-ui, sans-serif'
             }}>你的今日运势</h1>
             <p style={{
-              fontSize: '14px',
+              fontSize: 'calc(var(--base-font-size) * 0.875)',
               color: '#795548',
               margin: 0
             }}>{formatDate(fortune.date)} · 愿这份指引为你带来好运</p>
@@ -272,11 +276,11 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
           backgroundColor: 'rgba(255, 255, 255, 0.6)',
           borderRadius: '16px',
           padding: '24px',
-          marginBottom: '20px',
+          marginBottom: '30px',
           textAlign: 'center'
         }}>
           <h2 style={{
-            fontSize: '18px',
+            fontSize: 'calc(var(--base-font-size) * 1.125)',
             fontWeight: '600',
             color: '#5D4037',
             margin: '0 0 16px 0'
@@ -290,7 +294,7 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
             {renderStars(fortune.overallRating)}
           </div>
           <p style={{
-            fontSize: '14px',
+            fontSize: 'calc(var(--base-font-size) * 0.875)',
             color: '#795548',
             margin: 0
           }}>{fortune.overallRating}/5 星</p>
@@ -301,10 +305,11 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
           backgroundColor: 'rgba(255, 255, 255, 0.6)',
           borderRadius: '16px',
           padding: '24px',
-          marginBottom: '20px'
+          marginBottom: '30px',
+          textAlign: 'center'
         }}>
           <h3 style={{
-            fontSize: '18px',
+            fontSize: 'calc(var(--base-font-size) * 1.125)',
             fontWeight: '600',
             color: '#5D4037',
             margin: '0 0 16px 0'
@@ -324,13 +329,13 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
             }}></div>
             <div>
               <p style={{
-                fontSize: '16px',
+                fontSize: 'calc(var(--base-font-size) * 1)',
                 fontWeight: '600',
                 color: '#5D4037',
                 margin: '0 0 4px 0'
               }}>{fortune.luckyColor}</p>
               <p style={{
-                fontSize: '14px',
+                fontSize: 'calc(var(--base-font-size) * 0.875)',
                 color: '#795548',
                 margin: 0,
                 lineHeight: '1.4'
@@ -347,7 +352,7 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
           marginBottom: '20px'
         }}>
           <h3 style={{
-            fontSize: '18px',
+            fontSize: 'calc(var(--base-font-size) * 1.125)',
             fontWeight: '600',
             color: '#5D4037',
             margin: '0 0 12px 0',
@@ -355,11 +360,11 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
             alignItems: 'center',
             gap: '8px'
           }}>
-            <span style={{ fontSize: '20px' }}>💚</span>
+            <span style={{ fontSize: 'calc(var(--base-font-size) * 1.25)' }}>💚</span>
             健康运势
           </h3>
           <p style={{
-            fontSize: '15px',
+            fontSize: 'calc(var(--base-font-size) * 0.9375)',
             color: '#424242',
             lineHeight: '1.6',
             margin: 0
@@ -376,55 +381,80 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
           <div style={{
             backgroundColor: 'rgba(255, 255, 255, 0.6)',
             borderRadius: '16px',
-            padding: '24px',
-            flex: 1
+            padding: '24px'
           }}>
-            <h3 style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: '#5D4037',
-              margin: '0 0 12px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <span style={{ fontSize: '20px' }}>💰</span>
-              财富运势
-            </h3>
-            <p style={{
-              fontSize: '15px',
-              color: '#424242',
-              lineHeight: '1.6',
-              margin: 0
-            }}>{fortune.wealthFortune}</p>
+                      <h3 style={{
+            fontSize: 'calc(var(--base-font-size) * 1.125)',
+            fontWeight: '600',
+            color: '#5D4037',
+            margin: '0 0 12px 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: 'calc(var(--base-font-size) * 1.25)' }}>💰</span>
+            财富运势
+          </h3>
+          <p style={{
+            fontSize: 'calc(var(--base-font-size) * 0.9375)',
+            color: '#424242',
+            lineHeight: '1.6',
+            margin: 0
+          }}>{fortune.wealthFortune}</p>
           </div>
 
           {/* 人际运势 */}
           <div style={{
             backgroundColor: 'rgba(255, 255, 255, 0.6)',
             borderRadius: '16px',
-            padding: '24px',
-            flex: 1
+            padding: '24px'
           }}>
-            <h3 style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: '#5D4037',
-              margin: '0 0 12px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <span style={{ fontSize: '20px' }}>🤝</span>
-              人际运势
-            </h3>
-            <p style={{
-              fontSize: '15px',
-              color: '#424242',
-              lineHeight: '1.6',
-              margin: 0
-            }}>{fortune.interpersonalFortune}</p>
+           <h3 style={{
+            fontSize: 'calc(var(--base-font-size) * 1.125)',
+            fontWeight: '600',
+            color: '#5D4037',
+            margin: '0 0 12px 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: 'calc(var(--base-font-size) * 1.25)' }}>🤝</span>
+            人际运势
+          </h3>
+          <p style={{
+            fontSize: 'calc(var(--base-font-size) * 0.9375)',
+            color: '#424242',
+            lineHeight: '1.6',
+            margin: 0
+          }}>{fortune.interpersonalFortune}</p>
           </div>
+        </div>
+
+        {/* 行动建议 */}
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.6)',
+          borderRadius: '16px',
+          padding: '24px',
+          marginBottom: '30px'
+        }}>
+          <h3 style={{
+            fontSize: 'calc(var(--base-font-size) * 1.125)',
+            fontWeight: '600',
+            color: '#5D4037',
+            margin: '0 0 12px 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: 'calc(var(--base-font-size) * 1.25)' }}>🚀</span>
+            行动建议
+          </h3>
+          <p style={{
+            fontSize: 'calc(var(--base-font-size) * 0.9375)',
+            color: '#424242',
+            lineHeight: '1.6',
+            margin: 0
+          }}>{fortune.actionSuggestion}</p>
         </div>
 
 
@@ -433,7 +463,7 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
         <p style={{
           textAlign: 'center',
           color: '#999',
-          fontSize: '12px',
+          fontSize: 'calc(var(--base-font-size) * 0.75)',
           marginTop: '20px',
           opacity: 0.7
         }}>
