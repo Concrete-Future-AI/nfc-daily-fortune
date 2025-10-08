@@ -166,6 +166,13 @@ export async function callAIService(prompt: string): Promise<AIResponse> {
     throw new Error('AI服务配置不完整')
   }
 
+  // 输出完整的提示词内容到终端
+  console.log('\n' + '='.repeat(80))
+  console.log('🤖 AI运势生成 - 完整提示词内容')
+  console.log('='.repeat(80))
+  console.log(prompt)
+  console.log('='.repeat(80) + '\n')
+
   const config = DEFAULT_RETRY_CONFIG
   let lastError: unknown
 

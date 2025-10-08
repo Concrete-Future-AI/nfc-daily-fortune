@@ -78,11 +78,18 @@ export interface WeatherInfo {
  */
 export async function getLocationByIP(ip?: string): Promise<LocationInfo | null> {
   try {
+    // 打印高德API相关变量
+    console.log('\n' + '🗺️'.repeat(20) + ' 高德API IP定位调用 ' + '🗺️'.repeat(20))
+    console.log('📍 API密钥:', AMAP_API_KEY ? `${AMAP_API_KEY.substring(0, 8)}...` : '未设置')
+    console.log('🌐 目标IP:', ip || '当前请求IP')
+    
     const url = new URL('https://restapi.amap.com/v3/ip')
     url.searchParams.append('key', AMAP_API_KEY)
     if (ip) {
       url.searchParams.append('ip', ip)
     }
+    
+    console.log('🔗 请求URL:', url.toString())
 
     const response = await fetch(url.toString(), {
       method: 'GET',
@@ -97,6 +104,11 @@ export async function getLocationByIP(ip?: string): Promise<LocationInfo | null>
     }
 
     const data: IPLocationResponse = await response.json()
+    
+    console.log('📦 API响应状态:', data.status)
+    console.log('📦 API响应信息:', data.info)
+    console.log('📦 API响应码:', data.infocode)
+    console.log('📦 原始响应数据:', JSON.stringify(data, null, 2))
 
     if (data.status !== '1') {
       console.error('IP定位失败:', data.info)
@@ -107,18 +119,28 @@ export async function getLocationByIP(ip?: string): Promise<LocationInfo | null>
     const province = Array.isArray(data.province) ? '' : data.province || ''
     const city = Array.isArray(data.city) ? '' : data.city || ''
     const adcode = Array.isArray(data.adcode) ? '' : data.adcode || ''
+    
+    console.log('🏛️ 处理后的省份:', province)
+    console.log('🏙️ 处理后的城市:', city)
+    console.log('🔢 处理后的区域码:', adcode)
 
     // 如果IP定位返回空值，返回null
     if (!province && !city && !adcode) {
-      console.log('IP定位返回空值')
+      console.log('❌ IP定位返回空值')
+      console.log('=' .repeat(80))
       return null
     }
 
-    return {
+    const result = {
       province,
       city,
       adcode,
     }
+    
+    console.log('✅ IP定位成功，返回结果:', JSON.stringify(result, null, 2))
+    console.log('=' .repeat(80))
+    
+    return result
   } catch (error) {
     console.error('IP定位服务调用失败:', error)
     return null
@@ -131,9 +153,16 @@ export async function getLocationByIP(ip?: string): Promise<LocationInfo | null>
  */
 export async function getLocationByBirthPlace(birthPlace: string): Promise<LocationInfo | null> {
   try {
+    // 打印高德API相关变量
+    console.log('\n' + '🏠'.repeat(20) + ' 高德API 出生地查询 ' + '🏠'.repeat(20))
+    console.log('📍 API密钥:', AMAP_API_KEY ? `${AMAP_API_KEY.substring(0, 8)}...` : '未设置')
+    console.log('🏙️ 出生地名称:', birthPlace)
+    
     const url = new URL('https://restapi.amap.com/v3/geocode/geo')
     url.searchParams.append('key', AMAP_API_KEY)
     url.searchParams.append('address', birthPlace)
+    
+    console.log('🔗 请求URL:', url.toString())
 
     const response = await fetch(url.toString(), {
       method: 'GET',
@@ -148,18 +177,28 @@ export async function getLocationByBirthPlace(birthPlace: string): Promise<Locat
     }
 
     const data = await response.json()
+    
+    console.log('📦 API响应状态:', data.status)
+    console.log('📦 API响应信息:', data.info)
+    console.log('📦 原始响应数据:', JSON.stringify(data, null, 2))
 
     if (data.status !== '1' || !data.geocodes || data.geocodes.length === 0) {
       console.error('地理编码失败:', data.info)
+      console.log('=' .repeat(80))
       return null
     }
 
     const geocode = data.geocodes[0]
-    return {
+    const result = {
       province: geocode.province || '',
       city: geocode.city || '',
       adcode: geocode.adcode || '',
     }
+    
+    console.log('✅ 出生地查询成功，返回结果:', JSON.stringify(result, null, 2))
+    console.log('=' .repeat(80))
+    
+    return result
   } catch (error) {
     console.error('地理编码服务调用失败:', error)
     return null
@@ -177,10 +216,18 @@ export async function getWeatherByAdcode(
   extensions: 'base' | 'all' = 'base'
 ): Promise<WeatherInfo | null> {
   try {
+    // 打印高德API相关变量
+    console.log('\n' + '🌤️'.repeat(20) + ' 高德API 天气查询 ' + '🌤️'.repeat(20))
+    console.log('📍 API密钥:', AMAP_API_KEY ? `${AMAP_API_KEY.substring(0, 8)}...` : '未设置')
+    console.log('🔢 城市编码:', adcode)
+    console.log('📊 查询类型:', extensions === 'base' ? '实况天气' : '预报天气')
+    
     const url = new URL('https://restapi.amap.com/v3/weather/weatherInfo')
     url.searchParams.append('key', AMAP_API_KEY)
     url.searchParams.append('city', adcode)
     url.searchParams.append('extensions', extensions)
+    
+    console.log('🔗 请求URL:', url.toString())
 
     const response = await fetch(url.toString(), {
       method: 'GET',
@@ -195,16 +242,22 @@ export async function getWeatherByAdcode(
     }
 
     const data: WeatherResponse = await response.json()
+    
+    console.log('📦 API响应状态:', data.status)
+    console.log('📦 API响应信息:', data.info)
+    console.log('📦 API响应码:', data.infocode)
+    console.log('📦 原始响应数据:', JSON.stringify(data, null, 2))
 
     if (data.status !== '1') {
       console.error('天气查询失败:', data.info)
+      console.log('=' .repeat(80))
       return null
     }
 
     // 返回实况天气数据
     if (extensions === 'base' && data.lives && data.lives.length > 0) {
       const weather = data.lives[0]
-      return {
+      const result = {
         weather: weather.weather,
         temperature: weather.temperature,
         winddirection: weather.winddirection,
@@ -212,8 +265,15 @@ export async function getWeatherByAdcode(
         humidity: weather.humidity,
         reporttime: weather.reporttime,
       }
+      
+      console.log('✅ 天气查询成功，返回结果:', JSON.stringify(result, null, 2))
+      console.log('=' .repeat(80))
+      
+      return result
     }
 
+    console.log('❌ 天气数据为空或格式不正确')
+    console.log('=' .repeat(80))
     return null
   } catch (error) {
     console.error('天气查询服务调用失败:', error)
