@@ -106,6 +106,23 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   backoffMultiplier: 2
 }
 
+// 定义错误类型接口
+interface ErrorWithMessage {
+  name?: string
+  message: string
+  stack?: string
+}
+
+// 类型守卫函数
+function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as Record<string, unknown>).message === 'string'
+  )
+}
+
 // 延迟函数
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -118,7 +135,11 @@ function calculateDelay(attempt: number, config: RetryConfig): number {
 }
 
 // 判断错误是否可重试
-function isRetryableError(error: any): boolean {
+function isRetryableError(error: unknown): boolean {
+  if (!isErrorWithMessage(error)) {
+    return false
+  }
+  
   // 网络错误、超时、5xx服务器错误等可重试
   if (error.name === 'TypeError' && error.message.includes('fetch')) {
     return true // 网络错误
@@ -139,14 +160,14 @@ function isRetryableError(error: any): boolean {
 export async function callAIService(prompt: string, retryConfig: Partial<RetryConfig> = {}): Promise<AIResponse> {
   const endpoint = process.env.AI_ENDPOINT
   const apiKey = process.env.AI_API_KEY
-  const modelName = process.env.AI_MODEL_NAME || 'gpt-3.5-turbo'
+  const modelName = process.env.AI_MODEL_NAME
 
-  if (!endpoint || !apiKey) {
+  if (!endpoint || !apiKey || !modelName) {
     throw new Error('AI服务配置不完整')
   }
 
   const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig }
-  let lastError: any
+  let lastError: unknown
 
   for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
     try {
@@ -167,55 +188,50 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
             }
           ],
           temperature: 0.7,
-          max_tokens: 1000
+          max_tokens: 2000
         })
       })
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => '无法获取错误详情')
-        const error = new Error(`AI服务调用失败: ${response.status} - ${errorText}`)
-        
-        // 记录详细错误信息
-        console.error(`AI服务调用失败 (尝试 ${attempt}):`, {
-          status: response.status,
-          statusText: response.statusText,
-          errorText,
-          headers: Object.fromEntries(response.headers.entries())
-        })
-        
-        throw error
+        const errorText = await response.text()
+        throw new Error(`AI服务调用失败 (${response.status}): ${errorText}`)
       }
 
       const data = await response.json()
-      
-      // 解析AI返回的内容
-      const content = data.choices[0]?.message?.content
-      if (!content) {
-        throw new Error('AI服务返回内容为空')
+      console.log('AI服务响应:', {
+        status: response.status,
+        hasChoices: !!data.choices,
+        choicesLength: data.choices?.length,
+        firstChoice: data.choices?.[0]
+      })
+
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error('AI服务返回数据格式错误: 缺少choices')
       }
+
+      const content = data.choices[0].message?.content
+      if (!content) {
+        throw new Error('AI服务返回数据格式错误: 缺少content')
+      }
+
+      console.log('AI返回内容:', {
+        contentLength: content.length,
+        contentPreview: content.substring(0, 200) + (content.length > 200 ? '...' : '')
+      })
 
       // 尝试解析JSON，支持重试
       const parseResult = await tryParseJSON(content, attempt, config.maxRetries)
+      
       if (parseResult.success) {
-        console.log(`AI服务调用成功 (尝试 ${attempt})`)
+        console.log('AI服务调用成功')
         return {
           success: true,
           data: parseResult.data,
           rawResponse: data
         }
       } else {
-        // JSON解析失败，如果还有重试机会，继续重试
-        if (attempt <= config.maxRetries) {
-          console.warn(`JSON解析失败 (尝试 ${attempt}), 将重试:`, parseResult.error)
-          lastError = new Error(`JSON解析失败: ${parseResult.error}`)
-          
-          // 等待后重试
-          const delayMs = calculateDelay(attempt, config)
-          console.log(`等待 ${delayMs}ms 后重试...`)
-          await delay(delayMs)
-          continue
-        } else {
-          // 最后一次尝试也失败了，返回错误
+        // 如果是最后一次尝试，返回错误
+        if (attempt > config.maxRetries) {
           return {
             success: false,
             error: `AI返回内容格式错误 (${config.maxRetries + 1}次尝试后失败): ${parseResult.error}`,
@@ -225,11 +241,14 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
         }
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
        lastError = error
+       const errorMessage = isErrorWithMessage(error) ? error.message : String(error)
+       const errorStack = isErrorWithMessage(error) ? error.stack : undefined
+       
        console.error(`AI服务调用失败 (尝试 ${attempt}):`, {
-         error: error?.message || String(error),
-         stack: error?.stack,
+         error: errorMessage,
+         stack: errorStack,
          attempt,
          maxRetries: config.maxRetries
        })
@@ -251,15 +270,28 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
   throw lastError || new Error('AI服务调用失败')
 }
 
+// 定义 JSON 解析结果类型
+interface ParseResult {
+  overallRating: number
+  healthFortune: string
+  healthSuggestion: string
+  wealthFortune: string
+  interpersonalFortune: string
+  luckyColor: string
+  actionSuggestion: string
+  [key: string]: string | number
+}
+
 // JSON解析重试函数
-async function tryParseJSON(content: string, attempt: number, maxRetries: number): Promise<{success: true, data: any} | {success: false, error: string}> {
+async function tryParseJSON(content: string, attempt: number, maxRetries: number): Promise<{success: true, data: ParseResult} | {success: false, error: string}> {
   try {
     // 尝试直接解析
-    const parsed = JSON.parse(content)
+    const parsed = JSON.parse(content) as ParseResult
     return { success: true, data: parsed }
-  } catch (jsonError: any) {
+  } catch (jsonError: unknown) {
+     const errorMessage = isErrorWithMessage(jsonError) ? jsonError.message : String(jsonError)
      console.warn(`JSON解析失败 (尝试 ${attempt}):`, {
-       error: jsonError?.message || String(jsonError),
+       error: errorMessage,
        content: content.substring(0, 200) + (content.length > 200 ? '...' : ''),
        contentLength: content.length
      })
@@ -267,13 +299,14 @@ async function tryParseJSON(content: string, attempt: number, maxRetries: number
      // 尝试清理和修复JSON
      try {
        const cleanedContent = cleanJSONContent(content)
-       const parsed = JSON.parse(cleanedContent)
+       const parsed = JSON.parse(cleanedContent) as ParseResult
        console.log(`JSON清理后解析成功 (尝试 ${attempt})`)
        return { success: true, data: parsed }
-     } catch (cleanError: any) {
+     } catch (cleanError: unknown) {
+       const cleanErrorMessage = isErrorWithMessage(cleanError) ? cleanError.message : String(cleanError)
        return { 
          success: false, 
-         error: `原始解析失败: ${jsonError?.message || String(jsonError)}, 清理后解析失败: ${cleanError?.message || String(cleanError)}` 
+         error: `原始解析失败: ${errorMessage}, 清理后解析失败: ${cleanErrorMessage}` 
        }
      }
   }

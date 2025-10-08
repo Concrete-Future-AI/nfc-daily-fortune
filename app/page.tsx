@@ -86,12 +86,6 @@ function HomeContent() {
     setError('')
   }
 
-  const handleBackToRegistration = () => {
-    setCurrentView('registration')
-    setNfcUid('')
-    setError('')
-  }
-
   return (
     <>
       {/* 固定悬浮的字号调整工具栏 */}
@@ -103,7 +97,7 @@ function HomeContent() {
       </div>
 
       <div className="main-container">
-      {/* 移除顶部“健康运势助手”介绍卡片 */}
+      {/* 移除顶部"健康运势助手"介绍卡片 */}
 
       <main className="main-content" style={{ width: '100%', float: 'none' }}>
         {isLoading ? (

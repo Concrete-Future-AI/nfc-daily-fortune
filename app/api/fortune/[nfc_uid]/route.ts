@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { generateAIPrompt, callAIService } from '@/lib/ai'
 import { getLocationAndWeather, formatLocationInfo, formatWeatherInfo } from '@/lib/location-weather'
@@ -53,7 +53,7 @@ export async function GET(
 
     // 查找用户
     const user = await prisma.user.findUnique({
-      where: { nfcUid },
+      where: { nfcUid }
     });
 
     if (!user) {
@@ -65,37 +65,35 @@ export async function GET(
 
     // 检查是否为预生成的未注册用户
     const isPreGenerated = user.name.startsWith('待注册用户_');
-    
     if (isPreGenerated) {
       return NextResponse.json(
         { error: "用户需要先完成注册" },
-        { status: 404 }
+        { status: 400 }
       );
     }
 
-    // 获取今天的日期
+    // 获取今天的运势
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // 查找今天的运势
     let fortune = await prisma.fortune.findFirst({
       where: {
         userId: user.id,
         fortuneDate: {
           gte: today,
-          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
-        },
-      },
+          lt: tomorrow
+        }
+      }
     });
 
-    // 如果没有今天的运势，根据模式决定是否生成
+    // 如果没有今天的运势，生成一个
     if (!fortune) {
-      const generationMode = process.env.FORTUNE_GENERATION_MODE || "on_demand";
-      
-      if (generationMode === "on_demand") {
+      try {
         // 获取客户端IP和位置天气信息
-        const clientIP = getClientIP(request)
-        const { location, weather } = await getLocationAndWeather(clientIP)
+        const clientIP = getClientIP(request);
+        const { location, weather } = await getLocationAndWeather(clientIP);
         
         // 构建上下文信息
         const currentTime = new Date().toLocaleString('zh-CN', {
@@ -106,168 +104,76 @@ export async function GET(
           weekday: 'long',
           hour: '2-digit',
           minute: '2-digit'
-        })
+        });
         
         const contextInfo = {
           currentTime,
           location: location ? formatLocationInfo(location) : undefined,
           weather: weather ? formatWeatherInfo(weather) : undefined
-        }
-        
-        // 实时生成运势
+        };
+
+        // 生成运势
         const prompt = generateAIPrompt({
           name: user.name,
           gender: user.gender || undefined,
           dateOfBirth: user.dateOfBirth,
           birthPlace: user.birthPlace || undefined
         }, contextInfo);
-        const aiResponse = await callAIService(prompt);
+
+        const aiResult = await callAIService(prompt);
         
-        if (!aiResponse || !aiResponse.success) {
-          return NextResponse.json(
-            { error: "生成运势失败" },
-            { status: 500 }
-          );
+        if (!aiResult.success) {
+          throw new Error(`AI服务调用失败: ${aiResult.error}`);
         }
 
-        const aiData = aiResponse.data;
-
-        // 使用 upsert 来避免唯一性约束冲突
-        fortune = await prisma.fortune.upsert({
-          where: {
-            userId_fortuneDate: {
-              userId: user.id,
-              fortuneDate: today,
-            },
-          },
-          update: {
-            overallRating: aiData.overallRating,
-            luckyColor: aiData.luckyColor,
-            healthFortune: aiData.healthFortune,
-            healthSuggestion: aiData.healthSuggestion,
-            wealthFortune: aiData.wealthFortune,
-            interpersonalFortune: aiData.interpersonalFortune,
-            actionSuggestion: aiData.actionSuggestion,
-          },
-          create: {
+        const aiData = aiResult.data;
+        
+        // 创建运势记录
+        fortune = await prisma.fortune.create({
+          data: {
             userId: user.id,
             fortuneDate: today,
             overallRating: aiData.overallRating,
-            luckyColor: aiData.luckyColor,
             healthFortune: aiData.healthFortune,
             healthSuggestion: aiData.healthSuggestion,
             wealthFortune: aiData.wealthFortune,
             interpersonalFortune: aiData.interpersonalFortune,
+            luckyColor: aiData.luckyColor,
             actionSuggestion: aiData.actionSuggestion,
-          },
+            rawAiResponse: aiData
+          }
         });
-      } else {
+
+      } catch (error) {
+        console.error('生成运势失败:', error);
         return NextResponse.json(
-          { error: "今日运势尚未生成" },
-          { status: 404 }
+          { error: "生成运势失败，请稍后重试" },
+          { status: 500 }
         );
       }
     }
 
-    return NextResponse.json(fortune);
+    // 返回运势数据
+    return NextResponse.json({
+      id: fortune.id.toString(),
+      nfcUid: user.nfcUid,
+      date: fortune.fortuneDate.toISOString().split('T')[0],
+      overallRating: fortune.overallRating,
+      luckyColor: fortune.luckyColor,
+      luckyColorDescription: `今日幸运色是${fortune.luckyColor}`,
+      healthFortune: fortune.healthFortune,
+      wealthFortune: fortune.wealthFortune,
+      interpersonalFortune: fortune.interpersonalFortune,
+      actionSuggestion: fortune.actionSuggestion,
+      createdAt: fortune.createdAt.toISOString(),
+      updatedAt: fortune.createdAt.toISOString()
+    });
+
   } catch (error) {
     console.error("获取运势失败:", error);
     return NextResponse.json(
       { error: "获取运势失败" },
       { status: 500 }
     );
-  }
-}
-
-async function generateFortune(userId: number, date: Date) {
-  try {
-    // 首先检查是否已经存在该日期的运势
-    const existingFortune = await prisma.fortune.findUnique({
-      where: {
-        userId_fortuneDate: {
-          userId,
-          fortuneDate: date,
-        },
-      },
-    });
-
-    if (existingFortune) {
-      return existingFortune;
-    }
-
-    // 获取用户信息
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    })
-
-    if (!user) {
-      console.error('用户不存在')
-      return null
-    }
-
-    // 获取位置天气信息（批量生成时不依赖特定IP）
-    const { location, weather } = await getLocationAndWeather()
-    
-    // 构建上下文信息
-    const currentTime = new Date().toLocaleString('zh-CN', {
-      timeZone: 'Asia/Shanghai',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-    
-    const contextInfo = {
-      currentTime,
-      location: location ? formatLocationInfo(location) : undefined,
-      weather: weather ? formatWeatherInfo(weather) : undefined
-    }
-
-    // 生成运势
-    const prompt = generateAIPrompt({
-      name: user.name,
-      gender: user.gender || undefined,
-      dateOfBirth: user.dateOfBirth,
-      birthPlace: user.birthPlace || undefined
-    }, contextInfo)
-    const aiResult = await callAIService(prompt)
-    
-    if (!aiResult.success) {
-      console.error('AI服务调用失败:', aiResult.error)
-      return null
-    }
-
-    const aiData = aiResult.data
-    
-    const newFortune = {
-      userId,
-      fortuneDate: date,
-      overallRating: aiData.overallRating,
-      healthFortune: aiData.healthFortune,
-      healthSuggestion: aiData.healthSuggestion,
-      wealthFortune: aiData.wealthFortune,
-      interpersonalFortune: aiData.interpersonalFortune,
-      luckyColor: aiData.luckyColor,
-      actionSuggestion: aiData.actionSuggestion,
-      rawAiResponse: aiData
-    }
-
-    // 使用 upsert 来避免唯一性约束冲突
-    return await prisma.fortune.upsert({
-      where: {
-        userId_fortuneDate: {
-          userId,
-          fortuneDate: date,
-        },
-      },
-      update: newFortune,
-      create: newFortune,
-    });
-
-  } catch (error) {
-    console.error('生成运势失败:', error)
-    return null
   }
 }
