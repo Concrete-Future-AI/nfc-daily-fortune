@@ -80,7 +80,7 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
         clearTimeout(timeout)
       }
     })
-  }, [nfcUid, hasInitialized])
+  }, [nfcUid, hasInitialized, fortune])
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (

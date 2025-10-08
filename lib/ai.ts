@@ -157,7 +157,7 @@ function isRetryableError(error: unknown): boolean {
   return false
 }
 
-export async function callAIService(prompt: string, retryConfig: Partial<RetryConfig> = {}): Promise<AIResponse> {
+export async function callAIService(prompt: string): Promise<AIResponse> {
   const endpoint = process.env.AI_ENDPOINT
   const apiKey = process.env.AI_API_KEY
   const modelName = process.env.AI_MODEL_NAME
@@ -166,7 +166,7 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
     throw new Error('AI服务配置不完整')
   }
 
-  const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig }
+  const config = DEFAULT_RETRY_CONFIG
   let lastError: unknown
 
   for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
@@ -220,7 +220,7 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
       })
 
       // 尝试解析JSON，支持重试
-      const parseResult = await tryParseJSON(content, attempt, config.maxRetries)
+      const parseResult = await tryParseJSON(content, attempt)
       
       if (parseResult.success) {
         console.log('AI服务调用成功')
@@ -283,7 +283,7 @@ interface ParseResult {
 }
 
 // JSON解析重试函数
-async function tryParseJSON(content: string, attempt: number, maxRetries: number): Promise<{success: true, data: ParseResult} | {success: false, error: string}> {
+async function tryParseJSON(content: string, attempt: number): Promise<{success: true, data: ParseResult} | {success: false, error: string}> {
   try {
     // 尝试直接解析
     const parsed = JSON.parse(content) as ParseResult

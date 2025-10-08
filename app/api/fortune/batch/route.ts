@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { generateAIPrompt, callAIService } from '@/lib/ai'
 import { getLocationAndWeather, formatLocationInfo, formatWeatherInfo } from '@/lib/location-weather'

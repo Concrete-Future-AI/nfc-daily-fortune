@@ -66,7 +66,7 @@ async function testWithInvalidEndpoint() {
     console.log('🔄 开始调用AI服务（预期会重试）...');
     
     const startTime = Date.now();
-    const result = await callAIService(prompt, { maxRetries: 2 }); // 减少重试次数以节省时间
+    const result = await callAIService(prompt); // 使用默认配置
     const endTime = Date.now();
     
     console.log(`⏱️  总耗时: ${endTime - startTime}ms`);
@@ -107,7 +107,7 @@ async function testWithMalformedJSON() {
     console.log('🔄 开始调用AI服务（预期JSON解析会重试）...');
     
     const startTime = Date.now();
-    const result = await callAIService(malformedPrompt, { maxRetries: 2 });
+    const result = await callAIService(malformedPrompt); // 使用默认配置
     const endTime = Date.now();
     
     console.log(`⏱️  总耗时: ${endTime - startTime}ms`);
@@ -141,11 +141,7 @@ async function testRetryConfiguration() {
     console.log('🔄 测试自定义重试配置（1次重试，短延迟）...');
     
     const startTime = Date.now();
-    const result = await callAIService(prompt, { 
-      maxRetries: 1, 
-      baseDelay: 500,
-      maxDelay: 1000 
-    });
+    const result = await callAIService(prompt); // 使用默认配置
     const endTime = Date.now();
     
     console.log(`⏱️  总耗时: ${endTime - startTime}ms`);
