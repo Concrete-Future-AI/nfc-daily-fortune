@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { generateAIPrompt, callAIService } from '@/lib/ai'
+import { getLocationAndWeather, formatLocationInfo, formatWeatherInfo } from '@/lib/location-weather'
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,14 +57,34 @@ export async function POST(request: NextRequest) {
 }
 
 async function generateFortuneForUser(user: { id: number; name: string; gender?: string | null; dateOfBirth: Date; birthPlace?: string | null }, date: Date) {
+  // 获取位置天气信息（批量生成时不依赖特定IP）
+  const { location, weather } = await getLocationAndWeather()
+  
+  // 构建上下文信息
+  const currentTime = new Date().toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+  
+  const contextInfo = {
+    currentTime,
+    location: location ? formatLocationInfo(location) : undefined,
+    weather: weather ? formatWeatherInfo(weather) : undefined
+  }
+
   // 生成运势
-          const prompt = generateAIPrompt({
-            name: user.name,
-            gender: user.gender || undefined,
-            dateOfBirth: user.dateOfBirth,
-            birthPlace: user.birthPlace || undefined
-          })
-          const aiResult = await callAIService(prompt)
+  const prompt = generateAIPrompt({
+    name: user.name,
+    gender: user.gender || undefined,
+    dateOfBirth: user.dateOfBirth,
+    birthPlace: user.birthPlace || undefined
+  }, contextInfo)
+  const aiResult = await callAIService(prompt)
     
     if (!aiResult.success) {
       throw new Error(`AI服务调用失败: ${aiResult.error}`)

@@ -3,8 +3,23 @@ export function generateAIPrompt(user: {
   gender?: string
   dateOfBirth: Date
   birthPlace?: string
+}, contextInfo?: {
+  currentTime?: string
+  location?: string
+  weather?: string
 }) {
   const birthDateStr = user.dateOfBirth.toISOString().split('T')[0]
+  
+  // 构建上下文信息
+  let contextSection = ''
+  if (contextInfo) {
+    contextSection = `
+
+当前环境信息：
+- 当前时间：${contextInfo.currentTime || '未知'}
+- 当前位置：${contextInfo.location || '未知'}
+- 当前天气：${contextInfo.weather || '未知'}`
+  }
   
   return `请为以下用户生成今日健康运势内容，要求：
 
@@ -12,7 +27,7 @@ export function generateAIPrompt(user: {
 - 姓名：${user.name}
 - 性别：${user.gender || '未指定'}
 - 出生日期：${birthDateStr}
-- 出生地点：${user.birthPlace || '未指定'}
+- 出生地点：${user.birthPlace || '未指定'}${contextSection}
 
 请生成包含以下内容的运势：
 
@@ -28,8 +43,11 @@ export function generateAIPrompt(user: {
 - 语言要温暖、关怀，适合年长用户阅读
 - 内容要积极正面，体现东方文化特色
 - 幸运色要使用传统中文颜色名称，并包含准确的Hex代码
-- 健康建议要实用、温和
+- 健康建议要实用、温和，可以结合当前天气和时间给出针对性建议
+- 行动建议可以考虑当前的地理位置和天气状况
 - 避免使用过于现代化或西化的表达
+- 如果提供了天气信息，请在健康运势和建议中适当考虑天气对健康的影响
+- 如果提供了时间信息，请考虑时节对运势的影响
 
 请以JSON格式返回，结构如下：
 {

@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { generateAIPrompt, callAIService } from '@/lib/ai'
+import { getLocationAndWeather, formatLocationInfo, formatWeatherInfo } from '@/lib/location-weather'
+
+// 获取客户端IP地址的辅助函数
+function getClientIP(request: Request): string | undefined {
+  // 尝试从各种头部获取真实IP
+  const forwarded = request.headers.get('x-forwarded-for')
+  const realIP = request.headers.get('x-real-ip')
+  const cfConnectingIP = request.headers.get('cf-connecting-ip')
+  
+  if (forwarded) {
+    return forwarded.split(',')[0].trim()
+  }
+  if (realIP) {
+    return realIP
+  }
+  if (cfConnectingIP) {
+    return cfConnectingIP
+  }
+  
+  return undefined
+}
 
 export async function GET(
   request: Request,
@@ -72,13 +93,34 @@ export async function GET(
       const generationMode = process.env.FORTUNE_GENERATION_MODE || "on_demand";
       
       if (generationMode === "on_demand") {
+        // 获取客户端IP和位置天气信息
+        const clientIP = getClientIP(request)
+        const { location, weather } = await getLocationAndWeather(clientIP)
+        
+        // 构建上下文信息
+        const currentTime = new Date().toLocaleString('zh-CN', {
+          timeZone: 'Asia/Shanghai',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        
+        const contextInfo = {
+          currentTime,
+          location: location ? formatLocationInfo(location) : undefined,
+          weather: weather ? formatWeatherInfo(weather) : undefined
+        }
+        
         // 实时生成运势
         const prompt = generateAIPrompt({
           name: user.name,
           gender: user.gender || undefined,
           dateOfBirth: user.dateOfBirth,
           birthPlace: user.birthPlace || undefined
-        });
+        }, contextInfo);
         const aiResponse = await callAIService(prompt);
         
         if (!aiResponse || !aiResponse.success) {
@@ -163,13 +205,33 @@ async function generateFortune(userId: number, date: Date) {
       return null
     }
 
+    // 获取位置天气信息（批量生成时不依赖特定IP）
+    const { location, weather } = await getLocationAndWeather()
+    
+    // 构建上下文信息
+    const currentTime = new Date().toLocaleString('zh-CN', {
+      timeZone: 'Asia/Shanghai',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+    
+    const contextInfo = {
+      currentTime,
+      location: location ? formatLocationInfo(location) : undefined,
+      weather: weather ? formatWeatherInfo(weather) : undefined
+    }
+
     // 生成运势
     const prompt = generateAIPrompt({
       name: user.name,
       gender: user.gender || undefined,
       dateOfBirth: user.dateOfBirth,
       birthPlace: user.birthPlace || undefined
-    })
+    }, contextInfo)
     const aiResult = await callAIService(prompt)
     
     if (!aiResult.success) {
