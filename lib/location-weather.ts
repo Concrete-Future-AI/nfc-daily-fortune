@@ -4,7 +4,7 @@
  */
 
 // 高德地图API密钥
-const AMAP_API_KEY = 'e3a41f92bb0cf57fd545dbb874a691fd'
+const AMAP_API_KEY = process.env.AMAP_API_KEY || 'e3a41f92bb0cf57fd545dbb874a691fd'
 
 // IP定位接口返回类型
 interface IPLocationResponse {
@@ -103,13 +103,65 @@ export async function getLocationByIP(ip?: string): Promise<LocationInfo | null>
       return null
     }
 
+    // 处理高德API返回数组或空值的情况
+    const province = Array.isArray(data.province) ? '' : data.province || ''
+    const city = Array.isArray(data.city) ? '' : data.city || ''
+    const adcode = Array.isArray(data.adcode) ? '' : data.adcode || ''
+
+    // 如果IP定位返回空值，返回null
+    if (!province && !city && !adcode) {
+      console.log('IP定位返回空值')
+      return null
+    }
+
     return {
-      province: data.province,
-      city: data.city,
-      adcode: data.adcode,
+      province,
+      city,
+      adcode,
     }
   } catch (error) {
     console.error('IP定位服务调用失败:', error)
+    return null
+  }
+}
+
+/**
+ * 根据出生地名称获取位置信息（用于获取出生地的天气）
+ * @param birthPlace 出生地名称，如"北京市"、"上海市"等
+ */
+export async function getLocationByBirthPlace(birthPlace: string): Promise<LocationInfo | null> {
+  try {
+    const url = new URL('https://restapi.amap.com/v3/geocode/geo')
+    url.searchParams.append('key', AMAP_API_KEY)
+    url.searchParams.append('address', birthPlace)
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      console.error('地理编码请求失败:', response.status, response.statusText)
+      return null
+    }
+
+    const data = await response.json()
+
+    if (data.status !== '1' || !data.geocodes || data.geocodes.length === 0) {
+      console.error('地理编码失败:', data.info)
+      return null
+    }
+
+    const geocode = data.geocodes[0]
+    return {
+      province: geocode.province || '',
+      city: geocode.city || '',
+      adcode: geocode.adcode || '',
+    }
+  } catch (error) {
+    console.error('地理编码服务调用失败:', error)
     return null
   }
 }
@@ -181,14 +233,40 @@ export async function getLocationAndWeather(ip?: string): Promise<{
   const location = await getLocationByIP(ip)
   let weather: WeatherInfo | null = null
 
-  if (location && location.adcode) {
+  if (location?.adcode) {
     weather = await getWeatherByAdcode(location.adcode)
   }
 
-  return {
-    location,
-    weather,
+  return { location, weather }
+}
+
+/**
+ * 获取完整的上下文信息，包括当前位置、出生地位置和天气
+ * @param birthPlace 用户出生地
+ * @param ip 可选的IP地址
+ */
+export async function getFullContextInfo(birthPlace?: string, ip?: string): Promise<{
+  currentLocation: LocationInfo | null
+  birthLocation: LocationInfo | null
+  weather: WeatherInfo | null
+}> {
+  // 获取当前位置
+  const currentLocation = await getLocationByIP(ip)
+  
+  // 获取出生地位置
+  let birthLocation: LocationInfo | null = null
+  if (birthPlace) {
+    birthLocation = await getLocationByBirthPlace(birthPlace)
   }
+  
+  // 获取天气信息（优先使用当前位置，如果没有则使用出生地）
+  let weather: WeatherInfo | null = null
+  const locationForWeather = currentLocation || birthLocation
+  if (locationForWeather?.adcode) {
+    weather = await getWeatherByAdcode(locationForWeather.adcode)
+  }
+
+  return { currentLocation, birthLocation, weather }
 }
 
 /**

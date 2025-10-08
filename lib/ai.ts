@@ -5,7 +5,7 @@ export function generateAIPrompt(user: {
   birthPlace?: string
 }, contextInfo?: {
   currentTime?: string
-  location?: string
+  currentLocation?: string
   weather?: string
 }) {
   const birthDateStr = user.dateOfBirth.toISOString().split('T')[0]
@@ -17,7 +17,7 @@ export function generateAIPrompt(user: {
 
 当前环境信息：
 - 当前时间：${contextInfo.currentTime || '未知'}
-- 当前位置：${contextInfo.location || '未知'}
+- 当前所在地：${contextInfo.currentLocation || '未知'}
 - 当前天气：${contextInfo.weather || '未知'}`
   }
   
@@ -44,7 +44,8 @@ export function generateAIPrompt(user: {
 - 内容要积极正面，体现东方文化特色
 - 幸运色要使用传统中文颜色名称，并包含准确的Hex代码
 - 健康建议要实用、温和，可以结合当前天气和时间给出针对性建议
-- 行动建议可以考虑当前的地理位置和天气状况
+- 行动建议可以考虑当前所在地的地理位置和天气状况
+- 可以结合用户的出生地特色和当前所在地环境给出个性化建议
 - 避免使用过于现代化或西化的表达
 - 如果提供了天气信息，请在健康运势和建议中适当考虑天气对健康的影响
 - 如果提供了时间信息，请考虑时节对运势的影响
@@ -85,7 +86,52 @@ interface AIErrorResponse {
 
 export type AIResponse = AISuccessResponse | AIErrorResponse
 
-export async function callAIService(prompt: string): Promise<AIResponse> {
+// 重试配置
+interface RetryConfig {
+  maxRetries: number
+  baseDelay: number
+  maxDelay: number
+  backoffMultiplier: number
+}
+
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
+  maxRetries: 3,
+  baseDelay: 1000, // 1秒
+  maxDelay: 10000, // 10秒
+  backoffMultiplier: 2
+}
+
+// 延迟函数
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+// 计算重试延迟时间（指数退避）
+function calculateDelay(attempt: number, config: RetryConfig): number {
+  const delay = config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1)
+  return Math.min(delay, config.maxDelay)
+}
+
+// 判断错误是否可重试
+function isRetryableError(error: any): boolean {
+  // 网络错误、超时、5xx服务器错误等可重试
+  if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    return true // 网络错误
+  }
+  if (error.message.includes('timeout')) {
+    return true // 超时错误
+  }
+  if (error.message.includes('AI服务调用失败')) {
+    const statusMatch = error.message.match(/(\d{3})/)
+    if (statusMatch) {
+      const status = parseInt(statusMatch[1])
+      return status >= 500 || status === 429 // 5xx错误或限流
+    }
+  }
+  return false
+}
+
+export async function callAIService(prompt: string, retryConfig: Partial<RetryConfig> = {}): Promise<AIResponse> {
   const endpoint = process.env.AI_ENDPOINT
   const apiKey = process.env.AI_API_KEY
   const modelName = process.env.AI_MODEL_NAME || 'gpt-3.5-turbo'
@@ -94,58 +140,155 @@ export async function callAIService(prompt: string): Promise<AIResponse> {
     throw new Error('AI服务配置不完整')
   }
 
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000
-      })
-    })
+  const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig }
+  let lastError: any
 
-    if (!response.ok) {
-      throw new Error(`AI服务调用失败: ${response.status}`)
-    }
-
-    const data = await response.json()
-    
-    // 解析AI返回的内容
-    const content = data.choices[0]?.message?.content
-    if (!content) {
-      throw new Error('AI服务返回内容为空')
-    }
-
-    // 尝试解析JSON
+  for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
     try {
-      const parsed = JSON.parse(content)
-      return {
-        success: true,
-        data: parsed,
-        rawResponse: data
-      }
-    } catch (jsonError) {
-      // 如果JSON解析失败，返回原始内容
-      return {
-        success: false,
-        error: 'AI返回内容格式错误',
-        rawContent: content,
-        rawResponse: data
-      }
-    }
+      console.log(`AI服务调用尝试 ${attempt}/${config.maxRetries + 1}`)
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      })
 
-  } catch (error) {
-    console.error('AI服务调用失败:', error)
-    throw error
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '无法获取错误详情')
+        const error = new Error(`AI服务调用失败: ${response.status} - ${errorText}`)
+        
+        // 记录详细错误信息
+        console.error(`AI服务调用失败 (尝试 ${attempt}):`, {
+          status: response.status,
+          statusText: response.statusText,
+          errorText,
+          headers: Object.fromEntries(response.headers.entries())
+        })
+        
+        throw error
+      }
+
+      const data = await response.json()
+      
+      // 解析AI返回的内容
+      const content = data.choices[0]?.message?.content
+      if (!content) {
+        throw new Error('AI服务返回内容为空')
+      }
+
+      // 尝试解析JSON，支持重试
+      const parseResult = await tryParseJSON(content, attempt, config.maxRetries)
+      if (parseResult.success) {
+        console.log(`AI服务调用成功 (尝试 ${attempt})`)
+        return {
+          success: true,
+          data: parseResult.data,
+          rawResponse: data
+        }
+      } else {
+        // JSON解析失败，如果还有重试机会，继续重试
+        if (attempt <= config.maxRetries) {
+          console.warn(`JSON解析失败 (尝试 ${attempt}), 将重试:`, parseResult.error)
+          lastError = new Error(`JSON解析失败: ${parseResult.error}`)
+          
+          // 等待后重试
+          const delayMs = calculateDelay(attempt, config)
+          console.log(`等待 ${delayMs}ms 后重试...`)
+          await delay(delayMs)
+          continue
+        } else {
+          // 最后一次尝试也失败了，返回错误
+          return {
+            success: false,
+            error: `AI返回内容格式错误 (${config.maxRetries + 1}次尝试后失败): ${parseResult.error}`,
+            rawContent: content,
+            rawResponse: data
+          }
+        }
+      }
+
+    } catch (error: any) {
+       lastError = error
+       console.error(`AI服务调用失败 (尝试 ${attempt}):`, {
+         error: error?.message || String(error),
+         stack: error?.stack,
+         attempt,
+         maxRetries: config.maxRetries
+       })
+
+      // 如果是最后一次尝试，或者错误不可重试，直接抛出
+      if (attempt > config.maxRetries || !isRetryableError(error)) {
+        console.error(`AI服务调用最终失败 (${attempt}次尝试):`, error)
+        throw error
+      }
+
+      // 等待后重试
+      const delayMs = calculateDelay(attempt, config)
+      console.log(`等待 ${delayMs}ms 后重试...`)
+      await delay(delayMs)
+    }
   }
+
+  // 理论上不应该到达这里
+  throw lastError || new Error('AI服务调用失败')
+}
+
+// JSON解析重试函数
+async function tryParseJSON(content: string, attempt: number, maxRetries: number): Promise<{success: true, data: any} | {success: false, error: string}> {
+  try {
+    // 尝试直接解析
+    const parsed = JSON.parse(content)
+    return { success: true, data: parsed }
+  } catch (jsonError: any) {
+     console.warn(`JSON解析失败 (尝试 ${attempt}):`, {
+       error: jsonError?.message || String(jsonError),
+       content: content.substring(0, 200) + (content.length > 200 ? '...' : ''),
+       contentLength: content.length
+     })
+
+     // 尝试清理和修复JSON
+     try {
+       const cleanedContent = cleanJSONContent(content)
+       const parsed = JSON.parse(cleanedContent)
+       console.log(`JSON清理后解析成功 (尝试 ${attempt})`)
+       return { success: true, data: parsed }
+     } catch (cleanError: any) {
+       return { 
+         success: false, 
+         error: `原始解析失败: ${jsonError?.message || String(jsonError)}, 清理后解析失败: ${cleanError?.message || String(cleanError)}` 
+       }
+     }
+  }
+}
+
+// 清理JSON内容
+function cleanJSONContent(content: string): string {
+  // 移除可能的markdown代码块标记
+  let cleaned = content.replace(/```json\s*/g, '').replace(/```\s*$/g, '')
+  
+  // 移除前后空白
+  cleaned = cleaned.trim()
+  
+  // 尝试提取JSON对象（查找第一个{到最后一个}）
+  const firstBrace = cleaned.indexOf('{')
+  const lastBrace = cleaned.lastIndexOf('}')
+  
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    cleaned = cleaned.substring(firstBrace, lastBrace + 1)
+  }
+  
+  return cleaned
 }
