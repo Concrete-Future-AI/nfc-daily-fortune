@@ -78,15 +78,23 @@ export interface WeatherInfo {
  */
 export async function getLocationByIP(ip?: string): Promise<LocationInfo | null> {
   try {
+    // 处理IPv6映射的IPv4地址（如 ::ffff:175.13.219.100 -> 175.13.219.100）
+    let processedIp = ip
+    if (ip && ip.startsWith('::ffff:')) {
+      processedIp = ip.replace('::ffff:', '')
+      console.log('🔄 IPv6映射地址转换:', `${ip} -> ${processedIp}`)
+    }
+    
     // 打印高德API相关变量
     console.log('\n' + '🗺️'.repeat(20) + ' 高德API IP定位调用 ' + '🗺️'.repeat(20))
     console.log('📍 API密钥:', AMAP_API_KEY ? `${AMAP_API_KEY.substring(0, 8)}...` : '未设置')
-    console.log('🌐 目标IP:', ip || '当前请求IP')
+    console.log('🌐 原始IP:', ip || '当前请求IP')
+    console.log('🌐 处理后IP:', processedIp || '当前请求IP')
     
     const url = new URL('https://restapi.amap.com/v3/ip')
     url.searchParams.append('key', AMAP_API_KEY)
-    if (ip) {
-      url.searchParams.append('ip', ip)
+    if (processedIp) {
+      url.searchParams.append('ip', processedIp)
     }
     
     console.log('🔗 请求URL:', url.toString())
