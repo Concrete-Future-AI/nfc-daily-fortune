@@ -128,9 +128,25 @@ export async function GET(
 
         const aiData = aiResult.data;
         
-        // 创建运势记录
-        fortune = await prisma.fortune.create({
-          data: {
+        // 创建或更新运势记录（使用upsert避免重复创建）
+        fortune = await prisma.fortune.upsert({
+          where: {
+            userId_fortuneDate: {
+              userId: user.id,
+              fortuneDate: today
+            }
+          },
+          update: {
+            overallRating: aiData.overallRating,
+            healthFortune: aiData.healthFortune,
+            healthSuggestion: aiData.healthSuggestion,
+            wealthFortune: aiData.wealthFortune,
+            interpersonalFortune: aiData.interpersonalFortune,
+            luckyColor: aiData.luckyColor,
+            actionSuggestion: aiData.actionSuggestion,
+            rawAiResponse: aiData
+          },
+          create: {
             userId: user.id,
             fortuneDate: today,
             overallRating: aiData.overallRating,
