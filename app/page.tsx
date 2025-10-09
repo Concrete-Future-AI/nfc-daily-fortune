@@ -86,11 +86,7 @@ function HomeContent() {
     setError('')
   }
 
-  const handleBackToRegistration = () => {
-    setCurrentView('registration')
-    setNfcUid('')
-    setError('')
-  }
+
 
   return (
     <>

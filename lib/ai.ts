@@ -118,19 +118,21 @@ function calculateDelay(attempt: number, config: RetryConfig): number {
 }
 
 // 判断错误是否可重试
-function isRetryableError(error: any): boolean {
+function isRetryableError(error: Error | unknown): boolean {
   // 网络错误、超时、5xx服务器错误等可重试
-  if (error.name === 'TypeError' && error.message.includes('fetch')) {
-    return true // 网络错误
-  }
-  if (error.message.includes('timeout')) {
-    return true // 超时错误
-  }
-  if (error.message.includes('AI服务调用失败')) {
-    const statusMatch = error.message.match(/(\d{3})/)
-    if (statusMatch) {
-      const status = parseInt(statusMatch[1])
-      return status >= 500 || status === 429 // 5xx错误或限流
+  if (error instanceof Error) {
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      return true // 网络错误
+    }
+    if (error.message.includes('timeout')) {
+      return true // 超时错误
+    }
+    if (error.message.includes('AI服务调用失败')) {
+      const statusMatch = error.message.match(/(\d{3})/)
+      if (statusMatch) {
+        const status = parseInt(statusMatch[1])
+        return status >= 500 || status === 429 // 5xx错误或限流
+      }
     }
   }
   return false
@@ -146,7 +148,7 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
   }
 
   const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig }
-  let lastError: any
+  let lastError: Error | unknown
 
   for (let attempt = 1; attempt <= config.maxRetries + 1; attempt++) {
     try {
@@ -195,12 +197,21 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
       }
 
       // 尝试解析JSON，支持重试
-      const parseResult = await tryParseJSON(content, attempt, config.maxRetries)
+      const parseResult = await tryParseJSON(content, attempt)
       if (parseResult.success) {
         console.log(`AI服务调用成功 (尝试 ${attempt})`)
         return {
           success: true,
-          data: parseResult.data,
+          data: parseResult.data as {
+            overallRating: number
+            healthFortune: string
+            healthSuggestion: string
+            wealthFortune: string
+            interpersonalFortune: string
+            luckyColor: string
+            actionSuggestion: string
+            [key: string]: string | number
+          },
           rawResponse: data
         }
       } else {
@@ -225,11 +236,13 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
         }
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
        lastError = error
+       const errorMessage = error instanceof Error ? error.message : String(error)
+       const errorStack = error instanceof Error ? error.stack : undefined
        console.error(`AI服务调用失败 (尝试 ${attempt}):`, {
-         error: error?.message || String(error),
-         stack: error?.stack,
+         error: errorMessage,
+         stack: errorStack,
          attempt,
          maxRetries: config.maxRetries
        })
@@ -252,14 +265,15 @@ export async function callAIService(prompt: string, retryConfig: Partial<RetryCo
 }
 
 // JSON解析重试函数
-async function tryParseJSON(content: string, attempt: number, maxRetries: number): Promise<{success: true, data: any} | {success: false, error: string}> {
+async function tryParseJSON(content: string, attempt: number): Promise<{success: true, data: unknown} | {success: false, error: string}> {
   try {
     // 尝试直接解析
     const parsed = JSON.parse(content)
     return { success: true, data: parsed }
-  } catch (jsonError: any) {
+  } catch (jsonError: unknown) {
+     const errorMessage = jsonError instanceof Error ? jsonError.message : String(jsonError)
      console.warn(`JSON解析失败 (尝试 ${attempt}):`, {
-       error: jsonError?.message || String(jsonError),
+       error: errorMessage,
        content: content.substring(0, 200) + (content.length > 200 ? '...' : ''),
        contentLength: content.length
      })
@@ -270,10 +284,11 @@ async function tryParseJSON(content: string, attempt: number, maxRetries: number
        const parsed = JSON.parse(cleanedContent)
        console.log(`JSON清理后解析成功 (尝试 ${attempt})`)
        return { success: true, data: parsed }
-     } catch (cleanError: any) {
+     } catch (cleanError: unknown) {
+       const cleanErrorMessage = cleanError instanceof Error ? cleanError.message : String(cleanError)
        return { 
          success: false, 
-         error: `原始解析失败: ${jsonError?.message || String(jsonError)}, 清理后解析失败: ${cleanError?.message || String(cleanError)}` 
+         error: `原始解析失败: ${errorMessage}, 清理后解析失败: ${cleanErrorMessage}` 
        }
      }
   }

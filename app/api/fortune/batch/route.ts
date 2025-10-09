@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { generateAIPrompt, callAIService } from '@/lib/ai'
 import { getLocationAndWeather, formatLocationInfo, formatWeatherInfo } from '@/lib/location-weather'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // 获取所有用户
     const users = await prisma.user.findMany()
