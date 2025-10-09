@@ -15,13 +15,9 @@
 - **`generate-users.ts`** - 统一的用户生成工具（支持测试/生产环境）
 - **`export-users-csv-advanced.ts`** - 高级用户数据CSV导出
 
-### 🧪 系统测试
-- **`test-system.ts`** - 综合系统功能测试（位置、天气、AI服务）
-- **`verify-system.ts`** - 系统验证工具（数据库、数据流、错误处理）
-
-### 🔧 工具脚本
-- **`show-prompt.ts`** - AI提示词生成和显示
-- **`analyze-ai-response.ts`** - AI响应分析工具
+### 🧪 系统测试与验证
+- **`test-system.ts`** - 综合系统功能测试（位置、天气、AI服务、集成测试）
+- **`verify-system.ts`** - 系统验证工具（数据库、数据流、错误处理验证）
 
 ## 快速开始
 
@@ -46,25 +42,40 @@ npx tsx scripts/generate-users.ts --count 100 --env prod --force
 ### 系统测试
 ```bash
 # 运行完整系统测试
-npx tsx scripts/test-system.ts
+npx tsx scripts/test-system.ts --all
 
 # 仅测试位置服务
 npx tsx scripts/test-system.ts --location
 
+# 仅测试天气服务
+npx tsx scripts/test-system.ts --weather
+
 # 仅测试AI服务
 npx tsx scripts/test-system.ts --ai
+
+# 运行集成测试
+npx tsx scripts/test-system.ts --integration
+
+# 查看帮助信息
+npx tsx scripts/test-system.ts --help
 ```
 
 ### 系统验证
 ```bash
 # 验证所有系统组件
-npx tsx scripts/verify-system.ts
+npx tsx scripts/verify-system.ts --all
 
 # 仅验证数据库
 npx tsx scripts/verify-system.ts --database
 
 # 仅验证数据流
 npx tsx scripts/verify-system.ts --dataflow
+
+# 仅验证错误处理
+npx tsx scripts/verify-system.ts --errors
+
+# 查看帮助信息
+npx tsx scripts/verify-system.ts --help
 ```
 
 ## 详细功能说明
@@ -103,27 +114,22 @@ npx tsx scripts/verify-system.ts --dataflow
 ### 🧪 测试和验证脚本
 
 #### test-system.ts
-- 综合系统功能测试
-- 测试位置服务（IP定位、出生地定位）
-- 测试天气服务（实时天气查询）
-- 测试AI服务（运势生成）
-- 支持模块化测试和集成测试
+- 综合系统功能测试工具
+- **位置服务测试**：IP定位、出生地定位功能验证
+- **天气服务测试**：实时天气查询API验证
+- **AI服务测试**：运势生成和响应解析验证
+- **集成测试**：端到端数据流测试
+- 支持模块化测试和完整系统测试
+- 提供详细的测试报告和错误诊断
 
 #### verify-system.ts
-- 系统验证工具
-- 验证数据库数据完整性
-- 验证数据流正确性
-- 验证错误处理机制
-
-### 🔧 工具脚本
-
-#### show-prompt.ts
-- 生成和显示AI提示词
-- 用于调试和优化AI交互
-
-#### analyze-ai-response.ts
-- 分析AI响应质量
-- 用于监控和改进AI服务
+- 系统验证和健康检查工具
+- **数据库验证**：数据完整性和连接状态检查
+- **数据流验证**：完整的数据处理流程验证
+- **错误处理验证**：异常情况和重试机制测试
+- **改进的错误处理**：正确处理网络错误和API异常
+- 支持分模块验证和全面系统检查
+- 提供详细的验证报告和问题诊断
 
 ## 环境要求
 
@@ -155,6 +161,21 @@ AI_API_KEY="your_ai_api_key"
 3. **环境隔离** - 使用不同的NFC UID前缀区分测试和生产数据
 4. **定期验证** - 使用验证脚本定期检查系统健康状态
 5. **监控日志** - 关注脚本执行日志，及时发现问题
+6. **类型安全** - 所有脚本已通过TypeScript严格类型检查
+
+## 🔧 TypeScript改进与类型安全
+
+### 已修复的类型问题
+- **AI响应类型处理**：修复了`AIResponse`类型的`error`属性访问问题
+- **导入语句优化**：统一使用`import * as`语法避免默认导入问题
+- **类型断言安全**：在必要时使用类型断言确保类型安全
+- **错误处理改进**：完善了异常捕获和错误信息处理
+
+### 类型安全特性
+- 禁用`any`类型，确保类型安全
+- 严格的TypeScript配置
+- 完整的类型定义覆盖
+- 运行时类型检查和验证
 
 ## 故障排除
 
@@ -175,6 +196,21 @@ AI_API_KEY="your_ai_api_key"
 4. **内存不足**
    - 对于大型数据库，考虑分批处理
    - 增加Node.js内存限制：`node --max-old-space-size=4096`
+
+5. **TypeScript编译错误**
+   - 运行`npx tsc --noEmit scripts/脚本名.ts`检查类型错误
+   - 确保所有导入使用`import * as`语法
+   - 检查AI响应类型的`error`属性访问是否安全
+
+6. **错误处理验证失败**
+   - `TypeError: fetch failed`是预期行为（测试无效端点）
+   - 验证脚本会捕获异常并标记为正确处理
+   - 确保环境变量在测试后正确恢复
+
+7. **脚本执行权限问题**
+   - 使用`npx tsx`而不是`ts-node`运行TypeScript文件
+   - 确保PowerShell执行策略允许脚本运行
+   - 检查文件路径是否正确（使用绝对路径）
 
 ## 获取帮助
 
