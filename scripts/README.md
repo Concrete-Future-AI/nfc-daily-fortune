@@ -1,125 +1,193 @@
-# 数据库导出脚本
+# 脚本工具集
 
 ## 概述
 
-这个脚本用于导出健康运势助手应用的完整数据库，包括表结构和数据，生成可在全新服务器上部署的SQL文件。
+这个目录包含了健康运势助手应用的各种管理和维护脚本，经过整理优化，提供了完整的数据库管理、用户生成、系统测试和验证功能。
 
-## 功能特性
+## 核心脚本
 
-- ✅ 导出完整的表结构（CREATE TABLE语句）
-- ✅ 导出所有数据（INSERT语句）
-- ✅ 包含索引和外键约束
-- ✅ 包含触发器和函数
-- ✅ 自动重置序列值
-- ✅ 支持选择性导出（仅结构或仅数据）
-- ✅ 生成带时间戳的文件名
-- ✅ 包含导出统计信息
+### 📊 数据库管理
+- **`export-database.ts`** - PostgreSQL数据库完整导出
+- **`export-database-pg.ts`** - 增强版PostgreSQL导出工具
+- **`clear-database.ts`** - 清空数据库数据
 
-## 使用方法
+### 👥 用户管理
+- **`generate-users.ts`** - 统一的用户生成工具（支持测试/生产环境）
+- **`export-users-csv-advanced.ts`** - 高级用户数据CSV导出
 
-### 基本用法
+### 🧪 系统测试
+- **`test-system.ts`** - 综合系统功能测试（位置、天气、AI服务）
+- **`verify-system.ts`** - 系统验证工具（数据库、数据流、错误处理）
 
+### 🔧 工具脚本
+- **`show-prompt.ts`** - AI提示词生成和显示
+- **`analyze-ai-response.ts`** - AI响应分析工具
+
+## 快速开始
+
+### 数据库导出
 ```bash
-# 导出完整数据库（表结构 + 数据）
-npm run db:export
-
-# 或者直接运行脚本
+# 导出完整数据库
 npx tsx scripts/export-database.ts
+
+# 使用PostgreSQL专用导出
+npx tsx scripts/export-database-pg.ts --output ./backups
 ```
 
-### 高级选项
-
+### 用户生成
 ```bash
-# 仅导出表结构，不包含数据
-npm run db:export -- --no-data
+# 生成测试用户
+npx tsx scripts/generate-users.ts --count 10 --env test
 
-# 仅导出数据，不包含表结构
-npm run db:export -- --no-schema
-
-# 指定输出目录
-npm run db:export -- --output ./backups
-
-# 组合使用
-npm run db:export -- --output ./backups --no-data
-
-# 查看帮助
-npm run db:export -- --help
+# 生成生产用户（需要--force标志）
+npx tsx scripts/generate-users.ts --count 100 --env prod --force
 ```
 
-## 输出文件
+### 系统测试
+```bash
+# 运行完整系统测试
+npx tsx scripts/test-system.ts
 
-导出的SQL文件将保存在以下位置：
-- 默认路径：`./exports/database-export-YYYY-MM-DDTHH-mm-ss-sssZ.sql`
-- 自定义路径：`<指定目录>/database-export-YYYY-MM-DDTHH-mm-ss-sssZ.sql`
+# 仅测试位置服务
+npx tsx scripts/test-system.ts --location
 
-## 文件结构
+# 仅测试AI服务
+npx tsx scripts/test-system.ts --ai
+```
 
-生成的SQL文件包含以下部分：
+### 系统验证
+```bash
+# 验证所有系统组件
+npx tsx scripts/verify-system.ts
 
-1. **文件头注释** - 导出信息和元数据
-2. **数据库设置** - 编码和配置
-3. **表结构定义** - CREATE TABLE语句
-4. **索引和约束** - 索引、外键、唯一约束
-5. **触发器和函数** - 自动更新时间戳等
-6. **数据导出** - INSERT语句
-7. **序列重置** - 确保自增ID正确
-8. **统计信息** - 导出记录数量等
+# 仅验证数据库
+npx tsx scripts/verify-system.ts --database
 
-## 在新服务器部署
+# 仅验证数据流
+npx tsx scripts/verify-system.ts --dataflow
+```
 
-1. 在新服务器上创建PostgreSQL数据库：
-   ```sql
-   CREATE DATABASE fortune_app WITH ENCODING 'UTF8';
-   ```
+## 详细功能说明
 
-2. 连接到数据库并执行导出的SQL文件：
-   ```bash
-   psql -U username -d fortune_app -f database-export-YYYY-MM-DDTHH-mm-ss-sssZ.sql
-   ```
+### 📊 数据库管理脚本
 
-3. 验证数据导入：
-   ```sql
-   -- 检查表是否创建成功
-   \dt
-   
-   -- 检查数据是否导入成功
-   SELECT COUNT(*) FROM users;
-   SELECT COUNT(*) FROM fortunes;
-   ```
+#### export-database.ts
+- 导出完整的PostgreSQL数据库
+- 支持选择性导出（仅结构或仅数据）
+- 生成带时间戳的SQL文件
+- 包含完整的表结构、索引、约束和数据
 
-## 注意事项
+#### export-database-pg.ts
+- 增强版PostgreSQL导出工具
+- 支持更多自定义选项
+- 优化的性能和错误处理
 
-- 确保目标数据库支持PostgreSQL语法
-- 导出前确保数据库连接正常
-- 大量数据导出可能需要较长时间
-- 建议在导出前备份现有数据
-- 导入时确保目标数据库为空或使用DROP TABLE语句
+#### clear-database.ts
+- 安全地清空数据库中的所有数据
+- 保留表结构和约束
+- 重置自增序列
+
+### 👥 用户管理脚本
+
+#### generate-users.ts
+- 统一的用户生成工具
+- 支持测试环境（TEST_前缀）和生产环境（PROD_前缀）
+- 内置安全机制防止意外生成生产数据
+- 可指定用户数量和环境类型
+
+#### export-users-csv-advanced.ts
+- 高级用户数据CSV导出
+- 支持多种导出格式
+- 包含运势数据关联
+
+### 🧪 测试和验证脚本
+
+#### test-system.ts
+- 综合系统功能测试
+- 测试位置服务（IP定位、出生地定位）
+- 测试天气服务（实时天气查询）
+- 测试AI服务（运势生成）
+- 支持模块化测试和集成测试
+
+#### verify-system.ts
+- 系统验证工具
+- 验证数据库数据完整性
+- 验证数据流正确性
+- 验证错误处理机制
+
+### 🔧 工具脚本
+
+#### show-prompt.ts
+- 生成和显示AI提示词
+- 用于调试和优化AI交互
+
+#### analyze-ai-response.ts
+- 分析AI响应质量
+- 用于监控和改进AI服务
+
+## 环境要求
+
+- Node.js 18+
+- TypeScript
+- PostgreSQL数据库
+- 必要的环境变量配置（.env.local）
+
+## 配置说明
+
+确保以下环境变量已正确配置：
+
+```env
+# 数据库连接
+DATABASE_URL="postgresql://username:password@localhost:5432/database"
+
+# 高德地图API
+AMAP_API_KEY="your_amap_api_key"
+
+# AI服务配置
+AI_ENDPOINT="your_ai_endpoint"
+AI_API_KEY="your_ai_api_key"
+```
+
+## 最佳实践
+
+1. **测试环境优先** - 始终在测试环境中验证脚本功能
+2. **数据备份** - 运行数据修改脚本前先备份数据库
+3. **环境隔离** - 使用不同的NFC UID前缀区分测试和生产数据
+4. **定期验证** - 使用验证脚本定期检查系统健康状态
+5. **监控日志** - 关注脚本执行日志，及时发现问题
 
 ## 故障排除
 
-### 常见错误
+### 常见问题
 
 1. **数据库连接失败**
-   - 检查 `.env` 文件中的 `DATABASE_URL` 配置
-   - 确保数据库服务正在运行
+   - 检查DATABASE_URL配置
+   - 确保数据库服务运行正常
 
-2. **权限不足**
-   - 确保数据库用户有读取权限
+2. **API调用失败**
+   - 验证API密钥配置
+   - 检查网络连接状态
+
+3. **权限错误**
+   - 确保数据库用户有足够权限
    - 检查文件系统写入权限
 
-3. **内存不足**
-   - 对于大型数据库，考虑分批导出
+4. **内存不足**
+   - 对于大型数据库，考虑分批处理
    - 增加Node.js内存限制：`node --max-old-space-size=4096`
 
-### 调试模式
+## 获取帮助
 
-如需调试，可以直接运行TypeScript文件：
+每个脚本都支持 `--help` 参数查看详细使用说明：
+
 ```bash
-npx tsx scripts/export-database.ts --help
+npx tsx scripts/generate-users.ts --help
+npx tsx scripts/test-system.ts --help
+npx tsx scripts/verify-system.ts --help
 ```
 
 ## 相关文件
 
-- `scripts/export-database.ts` - 主导出脚本
 - `prisma/schema.prisma` - 数据库模式定义
-- `package.json` - npm脚本配置
+- `.env.local` - 环境变量配置
+- `lib/` - 共享库文件
