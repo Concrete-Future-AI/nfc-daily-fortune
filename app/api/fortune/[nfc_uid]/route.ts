@@ -108,7 +108,7 @@ export async function GET(
         
         const contextInfo = {
           currentTime,
-          location: location ? formatLocationInfo(location) : undefined,
+          currentLocation: location ? formatLocationInfo(location) : undefined,
           weather: weather ? formatWeatherInfo(weather) : undefined
         };
 
