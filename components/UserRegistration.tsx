@@ -97,7 +97,7 @@ export default function UserRegistration({ onRegistrationComplete, initialNfcUid
       backgroundColor: 'transparent',
       fontFamily: 'var(--font-wenkai), system-ui, sans-serif'
     }}>
-      <div style={{
+      <div className="registration-form" style={{
         width: '100%',
         maxWidth: '380px',
         padding: '40px 30px',
@@ -108,12 +108,12 @@ export default function UserRegistration({ onRegistrationComplete, initialNfcUid
         position: 'relative',
         zIndex: 1
       }}>
-        <div style={{
+        <div className="header-container" style={{
           display: 'flex',
           alignItems: 'center',
           marginBottom: '32px'
         }}>
-          <div style={{
+          <div className="header-logo" style={{
             width: '80px',
             height: '80px',
             background: 'url(/logo.png) center/contain no-repeat',
@@ -122,7 +122,7 @@ export default function UserRegistration({ onRegistrationComplete, initialNfcUid
           }}>
           </div>
           <div style={{ textAlign: 'left' }}>
-            <h1 style={{
+            <h1 className="registration-title" style={{
               fontSize: '28px',
               fontWeight: '700',
               color: '#5D4037',
@@ -134,7 +134,7 @@ export default function UserRegistration({ onRegistrationComplete, initialNfcUid
               padding: '0',
               lineHeight: 'normal'
             }}>开启你的星运之旅</h1>
-            <p style={{
+            <p className="registration-subtitle" style={{
               fontSize: '15px',
               color: '#795548',
               margin: '0',

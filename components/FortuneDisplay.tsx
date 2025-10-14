@@ -243,12 +243,12 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
         boxSizing: 'border-box'
       }}>
         {/* 头部 Logo 和标题 */}
-        <div style={{
+        <div className="header-container" style={{
           display: 'flex',
           alignItems: 'center',
           marginBottom: '30px'
         }}>
-          <div style={{
+          <div className="header-logo" style={{
             width: '80px',
             height: '80px',
             background: 'url(/logo.png) center/contain no-repeat',
@@ -371,62 +371,74 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
           }}>{fortune.healthFortune}</p>
         </div>
 
-        {/* 财富和人际运势 - 同一行显示 */}
-        <div style={{
+        {/* 财富和人际运势 - 响应式布局 */}
+        <div className="fortune-cards-container" style={{
           display: 'flex',
           gap: '16px',
           marginBottom: '30px'
         }}>
           {/* 财富运势 */}
-          <div style={{
+          <div className="fortune-card" style={{
             backgroundColor: 'rgba(255, 255, 255, 0.6)',
             borderRadius: '16px',
-            padding: '24px'
-          }}>
-                      <h3 style={{
-            fontSize: 'calc(var(--base-font-size) * 1.125)',
-            fontWeight: '600',
-            color: '#5D4037',
-            margin: '0 0 12px 0',
+            padding: '24px',
+            flex: '1',
+            minHeight: '120px',
             display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            flexDirection: 'column'
           }}>
-            <span style={{ fontSize: 'calc(var(--base-font-size) * 1.25)' }}>💰</span>
-            财富运势
-          </h3>
-          <p style={{
-            fontSize: 'calc(var(--base-font-size) * 0.9375)',
-            color: '#424242',
-            lineHeight: '1.6',
-            margin: 0
-          }}>{fortune.wealthFortune}</p>
+            <h3 style={{
+              fontSize: 'calc(var(--base-font-size) * 1.125)',
+              fontWeight: '600',
+              color: '#5D4037',
+              margin: '0 0 12px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexShrink: 0
+            }}>
+              <span style={{ fontSize: 'calc(var(--base-font-size) * 1.25)' }}>💰</span>
+              财富运势
+            </h3>
+            <p style={{
+              fontSize: 'calc(var(--base-font-size) * 0.9375)',
+              color: '#424242',
+              lineHeight: '1.6',
+              margin: 0,
+              flex: '1'
+            }}>{fortune.wealthFortune}</p>
           </div>
 
           {/* 人际运势 */}
-          <div style={{
+          <div className="fortune-card" style={{
             backgroundColor: 'rgba(255, 255, 255, 0.6)',
             borderRadius: '16px',
-            padding: '24px'
-          }}>
-           <h3 style={{
-            fontSize: 'calc(var(--base-font-size) * 1.125)',
-            fontWeight: '600',
-            color: '#5D4037',
-            margin: '0 0 12px 0',
+            padding: '24px',
+            flex: '1',
+            minHeight: '120px',
             display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            flexDirection: 'column'
           }}>
-            <span style={{ fontSize: 'calc(var(--base-font-size) * 1.25)' }}>🤝</span>
-            人际运势
-          </h3>
-          <p style={{
-            fontSize: 'calc(var(--base-font-size) * 0.9375)',
-            color: '#424242',
-            lineHeight: '1.6',
-            margin: 0
-          }}>{fortune.interpersonalFortune}</p>
+            <h3 style={{
+              fontSize: 'calc(var(--base-font-size) * 1.125)',
+              fontWeight: '600',
+              color: '#5D4037',
+              margin: '0 0 12px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexShrink: 0
+            }}>
+              <span style={{ fontSize: 'calc(var(--base-font-size) * 1.25)' }}>🤝</span>
+              人际运势
+            </h3>
+            <p style={{
+              fontSize: 'calc(var(--base-font-size) * 0.9375)',
+              color: '#424242',
+              lineHeight: '1.6',
+              margin: 0,
+              flex: '1'
+            }}>{fortune.interpersonalFortune}</p>
           </div>
         </div>
 
