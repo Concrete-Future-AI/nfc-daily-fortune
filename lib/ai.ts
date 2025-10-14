@@ -241,7 +241,7 @@ export async function callAIService(prompt: string): Promise<AIResponse> {
         if (attempt > config.maxRetries) {
           return {
             success: false,
-            error: `AI返回内容格式错误 (${config.maxRetries + 1}次尝试后失败): ${!parseResult.success ? (parseResult as any).error : '解析失败'}`,
+            error: `AI返回内容格式错误 (${config.maxRetries + 1}次尝试后失败): ${parseResult.error}`,
             rawContent: content,
             rawResponse: data
           }
