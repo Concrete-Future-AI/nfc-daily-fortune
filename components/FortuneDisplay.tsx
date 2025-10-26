@@ -172,7 +172,7 @@ export default function FortuneDisplay({ nfcUid, onBack }: FortuneDisplayProps) 
             animation: 'spin 1s linear infinite',
             margin: '0 auto 20px'
           }}></div>
-          <p style={{ fontSize: '18px', margin: 0 }}>正在为您生成专属运势...</p>
+          <p style={{ fontSize: '18px', margin: 0 }}>AI 正在为您生成专属运势，预计生成时间60s...</p>
         </div>
       </div>
     )
